@@ -1818,19 +1818,12 @@ static void get_scan_count(struct zone *zone, struct scan_control *sc,
 	enum lru_list l;
 	int noswap = 0;
 	bool force_scan = false;
+	unsigned long nr_force_scan[2];
 
-	/*
-	 * If the zone or memcg is small, nr[l] can be 0.  This
-	 * results in no scanning on this priority and a potential
-	 * priority drop.  Global direct reclaim can go to the next
-	 * zone and tends to have no problems. Global kswapd is for
-	 * zone balancing and it needs to scan a minimum amount. When
-	 * reclaiming for a memcg, a priority drop can cause high
-	 * latencies, so it's better to scan a minimum amount there as
-	 * well.
-	 */
+	/* kswapd does zone balancing and needs to scan this zone */
 	if (scanning_global_lru(sc) && current_is_kswapd())
 		force_scan = true;
+	/* memcg may have small limit and need to avoid priority drop */
 	if (!scanning_global_lru(sc))
 		force_scan = true;
 
@@ -1844,9 +1837,9 @@ static void get_scan_count(struct zone *zone, struct scan_control *sc,
 	}
 
 	anon  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_ANON) +
-			zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
+		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
 	file  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_FILE) +
-			zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
+		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
 
 	if (scanning_global_lru(sc)) {
 		free  = zone_page_state(zone, NR_FREE_PAGES);

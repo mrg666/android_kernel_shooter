@@ -16,7 +16,6 @@
 #include <linux/cache.h>
 #include <linux/profile.h>
 #include <linux/errno.h>
-#include <linux/ftrace.h>
 #include <linux/mm.h>
 #include <linux/err.h>
 #include <linux/cpu.h>

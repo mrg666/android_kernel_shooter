@@ -74,7 +74,7 @@ early_initcall(init_static_idmap);
  * the user-mode pages.  This will then ensure that we have predictable
  * results when turning the mmu off
  */
-void setup_mm_for_reboot(char mode)
+void setup_mm_for_reboot(void)
 {
 	/*
 	 * We need to access to user-mode page tables here. For kernel threads

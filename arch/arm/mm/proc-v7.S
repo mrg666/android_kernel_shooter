@@ -61,6 +61,7 @@ ENDPROC(cpu_v7_proc_fin)
  *	- loc   - location to jump to for soft reset
  */
 	.align	5
+	.pushsection	.idmap.text, "ax"
 ENTRY(cpu_v7_reset)
 	mrc     p15, 0, r1, c1, c0, 0           @ ctrl register
 	bic     r1, r1, #0x0001                 @ ...............m
@@ -69,6 +70,7 @@ THUMB(	bic	r1, r1, #1 << 30 )		@ SCTLR.TE (Thumb exceptions)
         isb
 	mov     pc,r0
 ENDPROC(cpu_v7_reset)
+	.popsection
 
 /*
  *	cpu_v7_do_idle()

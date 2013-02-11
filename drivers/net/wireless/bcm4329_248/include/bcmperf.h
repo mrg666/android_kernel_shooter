@@ -1,4 +1,6 @@
 /*
+ * Performance counters software interface.
+ *
  * Copyright (C) 1999-2010, Broadcom Corporation
  * 
  *      Unless you and Broadcom execute a separate written software license
@@ -19,30 +21,16 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: epivers.h.in,v 13.25 2005/10/28 18:35:33 Exp $
- *
-*/
-
-
-#ifndef _epivers_h_
-#define _epivers_h_
-
-#define	EPI_MAJOR_VERSION	4
-
-#define	EPI_MINOR_VERSION	218
-
-#define	EPI_RC_NUMBER		248
-
-#define	EPI_INCREMENTAL_NUMBER	23
-
-#define	EPI_BUILD_NUMBER	0
-
-#define	EPI_VERSION		4, 218, 248, 23
-
-#define	EPI_VERSION_NUM		0x04daf817
-
-
-#define	EPI_VERSION_STR		"4.218.248.23"
-#define	EPI_ROUTER_VERSION_STR	"4.219.248.23"
-
-#endif 
+ * $Id: bcmperf.h,v 13.5 2007/09/14 22:00:59 Exp $
+ */
+/* essai */
+#ifndef _BCMPERF_H_
+#define _BCMPERF_H_
+/* get cache hits and misses */
+#define BCMPERF_ENABLE_INSTRCOUNT()
+#define BCMPERF_ENABLE_ICACHE_MISS()
+#define BCMPERF_ENABLE_ICACHE_HIT()
+#define	BCMPERF_GETICACHE_MISS(x)	((x) = 0)
+#define	BCMPERF_GETICACHE_HIT(x)	((x) = 0)
+#define	BCMPERF_GETINSTRCOUNT(x)	((x) = 0)
+#endif /* _BCMPERF_H_ */

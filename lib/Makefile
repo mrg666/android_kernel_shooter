@@ -112,15 +112,6 @@ obj-$(CONFIG_AVERAGE) += average.o
 
 obj-$(CONFIG_CPU_RMAP) += cpu_rmap.o
 
-obj-$(CONFIG_CORDIC) += cordic.o
-
-obj-$(CONFIG_DQL) += dynamic_queue_limits.o
-
-obj-$(CONFIG_MPILIB) += mpi/
-obj-$(CONFIG_SIGNATURE) += digsig.o
-
-obj-$(CONFIG_CLZ_TAB) += clz_tab.o
-
 obj-$(CONFIG_GENERIC_STRNCPY_FROM_USER) += strncpy_from_user.o
 obj-$(CONFIG_GENERIC_STRNLEN_USER) += strnlen_user.o
 

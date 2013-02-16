@@ -303,7 +303,7 @@ void __branch_clk_enable_reg(const struct branch *clk, const char *name)
 		for (count = HALT_CHECK_MAX_LOOPS; branch_clk_is_halted(clk)
 					&& count > 0; count--)
 			udelay(1);
-		WARN(count == 0, "%s status stuck at 'off'", name);
+		/* WARN(count == 0, "%s status stuck at 'off'", name); */
 	}
 }
 
@@ -373,7 +373,7 @@ u32 __branch_clk_disable_reg(const struct branch *clk, const char *name)
 		for (count = HALT_CHECK_MAX_LOOPS; !branch_clk_is_halted(clk)
 					&& count > 0; count--)
 			udelay(1);
-		WARN(count == 0, "%s status stuck at 'on'", name);
+		/* WARN(count == 0, "%s status stuck at 'on'", name); */
 	}
 
 	return reg_val;

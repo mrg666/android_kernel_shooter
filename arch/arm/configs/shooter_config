@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Linux/arm 3.0.63 Kernel Configuration
+# Linux/arm 3.0.64 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -1214,7 +1214,7 @@ CONFIG_DUMMY=y
 # CONFIG_BONDING is not set
 # CONFIG_MACVLAN is not set
 # CONFIG_EQUALIZER is not set
-CONFIG_TUN=y
+CONFIG_TUN=m
 # CONFIG_VETH is not set
 # CONFIG_MII is not set
 # CONFIG_PHYLIB is not set
@@ -2611,7 +2611,11 @@ CONFIG_NETWORK_FILESYSTEMS=y
 # CONFIG_NFS_FS is not set
 # CONFIG_NFSD is not set
 # CONFIG_CEPH_FS is not set
-# CONFIG_CIFS is not set
+CONFIG_CIFS=m
+# CONFIG_CIFS_STATS is not set
+# CONFIG_CIFS_WEAK_PW_HASH is not set
+# CONFIG_CIFS_XATTR is not set
+# CONFIG_CIFS_DEBUG2 is not set
 # CONFIG_NCP_FS is not set
 # CONFIG_CODA_FS is not set
 # CONFIG_AFS_FS is not set
@@ -2766,7 +2770,7 @@ CONFIG_CRYPTO_HMAC=y
 #
 CONFIG_CRYPTO_CRC32C=y
 # CONFIG_CRYPTO_GHASH is not set
-# CONFIG_CRYPTO_MD4 is not set
+CONFIG_CRYPTO_MD4=y
 CONFIG_CRYPTO_MD5=y
 # CONFIG_CRYPTO_MICHAEL_MIC is not set
 # CONFIG_CRYPTO_RMD128 is not set

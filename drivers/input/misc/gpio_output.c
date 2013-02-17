@@ -53,9 +53,9 @@ int gpio_event_output_func(
 		for (i = 0; i < oi->keymap_size; i++) {
 			int dev = oi->keymap[i].dev;
 			if (dev >= input_devs->count) {
-				KEY_LOGE("KEY_ERR: %s: bad device "
+				pr_err("gpio_event_output_func: bad device "
 					"index %d >= %d for key code %d\n",
-					__func__, dev, input_devs->count,
+					dev, input_devs->count,
 					oi->keymap[i].code);
 				ret = -EINVAL;
 				goto err_bad_keymap;
@@ -68,16 +68,16 @@ int gpio_event_output_func(
 			ret = gpio_request(oi->keymap[i].gpio,
 					   "gpio_event_output");
 			if (ret) {
-				KEY_LOGE("KEY_ERR: %s: gpio_request "
-					"failed for %d\n", __func__, oi->keymap[i].gpio);
+				pr_err("gpio_event_output_func: gpio_request "
+					"failed for %d\n", oi->keymap[i].gpio);
 				goto err_gpio_request_failed;
 			}
 			ret = gpio_direction_output(oi->keymap[i].gpio,
 						    output_level);
 			if (ret) {
-				KEY_LOGE("KEY_ERR: %s: "
+				pr_err("gpio_event_output_func: "
 					"gpio_direction_output failed for %d\n",
-					__func__, oi->keymap[i].gpio);
+					oi->keymap[i].gpio);
 				goto err_gpio_direction_output_failed;
 			}
 		}

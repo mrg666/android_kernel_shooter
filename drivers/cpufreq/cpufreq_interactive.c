@@ -845,6 +845,9 @@ static int cpufreq_governor_interactive(struct cpufreq_policy *policy,
 			pcpu->hispeed_validate_time =
 				pcpu->target_set_time;
 			pcpu->governor_enabled = 1;
+			pcpu->idle_exit_time = pcpu->target_set_time;
+			mod_timer(&pcpu->cpu_timer,
+				jiffies + usecs_to_jiffies(timer_rate));
 			smp_wmb();
 		}
 
@@ -968,6 +971,9 @@ static int __init cpufreq_interactive_init(void)
 	spin_lock_init(&up_cpumask_lock);
 	spin_lock_init(&down_cpumask_lock);
 	mutex_init(&set_speed_lock);
+
+	/* Kick the kthread to idle */
+	wake_up_process(up_task);
 
 	idle_notifier_register(&cpufreq_interactive_idle_nb);
 	INIT_WORK(&inputopen.inputopen_work, cpufreq_interactive_input_open);

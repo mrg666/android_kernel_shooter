@@ -429,8 +429,8 @@ static struct msm_spm_platform_data msm_spm_data[] __initdata = {
 
 #ifdef CONFIG_PERFLOCK
 static unsigned shooter_perf_acpu_table[] = {
-	384000000,
-	918000000,
+	432000000,
+	972000000,
 	1512000000,
 };
 

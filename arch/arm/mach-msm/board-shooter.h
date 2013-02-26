@@ -43,10 +43,12 @@
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 /* prim = 960 x 540 x 4(bpp) x 3(pages) */
-#define MSM_FB_PRIM_BUF_SIZE (960 * ALIGN(540, 32) * 4 * 3)
+#define MSM_FB_PRIM_BUF_SIZE \
+				(roundup((960 * ALIGN(540, 32) * 4), 4096) * 3)
 #else
 /* prim = 960 x 540 x 4(bpp) x 2(pages) */
-#define MSM_FB_PRIM_BUF_SIZE (960 * ALIGN(540, 32) * 4 * 2)
+#define MSM_FB_PRIM_BUF_SIZE \
+				(roundup((960 * ALIGN(540, 32) * 4), 4096) * 2)
 #endif
 
 

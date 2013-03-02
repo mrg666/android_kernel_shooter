@@ -12,7 +12,6 @@
 #ifndef _ASMARM_TIMEX_H
 #define _ASMARM_TIMEX_H
 
-#include <asm/arch_timer.h>
 #include <mach/timex.h>
 
 #ifdef ARCH_HAS_READ_CURRENT_TIMER

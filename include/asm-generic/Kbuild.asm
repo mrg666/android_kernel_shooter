@@ -24,7 +24,6 @@ header-y += ipcbuf.h
 header-y += mman.h
 header-y += msgbuf.h
 header-y += param.h
-header-y += percpu.h
 header-y += poll.h
 header-y += posix_types.h
 header-y += ptrace.h

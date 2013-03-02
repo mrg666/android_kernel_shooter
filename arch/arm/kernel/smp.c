@@ -472,6 +472,11 @@ static void ipi_timer(void)
 }
 
 #ifdef CONFIG_LOCAL_TIMERS
+asmlinkage void __exception_irq_entry do_local_timer(struct pt_regs *regs)
+{
+	handle_local_timer(regs);
+}
+
 void handle_local_timer(struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
@@ -485,11 +490,6 @@ void handle_local_timer(struct pt_regs *regs)
 	}
 
 	set_irq_regs(old_regs);
-}
-
-asmlinkage void __exception_irq_entry do_local_timer(struct pt_regs *regs)
-{
-	handle_local_timer(regs);
 }
 
 void show_local_irqs(struct seq_file *p, int prec)

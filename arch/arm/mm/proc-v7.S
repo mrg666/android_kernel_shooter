@@ -64,10 +64,8 @@ ENDPROC(cpu_v7_proc_fin)
 ENTRY(cpu_v7_reset)
 	mrc     p15, 0, r1, c1, c0, 0           @ ctrl register
 	bic     r1, r1, #0x0001                 @ ...............m
-        mcr     p15, 0, r1, c1, c0, 0           @ Turn off MMU
-        mcr     p15, 0, ip, c8, c7, 0           @ invalidate I & D,flush TLB
-        mcr     p15, 0, ip, c7, c5, 6           @ flush BTC
-        dsb
+THUMB(	bic	r1, r1, #1 << 30 )		@ SCTLR.TE (Thumb exceptions)
+        mcr     p15, 0, r1, c1, c0, 0           @ disable MMU
         isb
 	mov     pc,r0
 ENDPROC(cpu_v7_reset)
@@ -258,13 +256,16 @@ ENTRY(cpu_v7_do_resume)
 	mcr	p15, 0, r7, c2, c0, 0	@ TTB 0
 	mcr	p15, 0, r8, c2, c0, 1	@ TTB 1
 	mcr	p15, 0, ip, c2, c0, 2	@ TTB control register
-	mcr	p15, 0, r10, c1, c0, 1	@ Auxiliary control register
+	mrc	p15, 0, r4, c1, c0, 1	@ Read Auxiliary control register
+	teq	r4, r10			@ Is it already set?
+	mcrne	p15, 0, r10, c1, c0, 1	@ No, so write it
 	mcr	p15, 0, r11, c1, c0, 2	@ Co-processor access control
 	ldr	r4, =PRRR		@ PRRR
 	ldr	r5, =NMRR		@ NMRR
 	mcr	p15, 0, r4, c10, c2, 0	@ write PRRR
 	mcr	p15, 0, r5, c10, c2, 1	@ write NMRR
 	isb
+	dsb
 	mov	r0, r9			@ control register
 	mov	r2, r7, lsr #14		@ get TTB0 base
 	mov	r2, r2, lsl #14

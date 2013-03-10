@@ -478,6 +478,11 @@ pktq_mdeq(struct pktq *pq, uint prec_bmp, int *prec_out)
 	if (pq->len == 0)
 		return NULL;
 
+#ifdef HTC_KlocWork
+    while(pq->hi_prec >= PKTQ_MAX_PREC)
+        pq->hi_prec--;
+#endif
+
 	while ((prec = pq->hi_prec) > 0 && pq->q[prec].head == NULL)
 		pq->hi_prec--;
 

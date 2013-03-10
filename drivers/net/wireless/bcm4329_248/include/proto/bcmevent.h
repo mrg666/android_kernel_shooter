@@ -126,15 +126,20 @@ typedef BWL_PRE_PACKED_STRUCT struct bcm_event {
 #define WLC_E_MULTICAST_DECODE_ERROR 51 
 #define WLC_E_TRACE 52
 #define WLC_E_IF		54	
+#define WLC_E_ASSOCREQ_IE	55	/* Send up assoc ie */
 #define WLC_E_RSSI		56	
 #define WLC_E_PFN_SCAN_COMPLETE	57	
 #define WLC_E_ACTION_FRAME      58      
 #define WLC_E_ACTION_FRAME_COMPLETE 59  
-
-#define WLC_E_ESCAN_RESULT	69
-#define WLC_E_WAKE_EVENT	70
-#define WLC_E_RELOAD		71
-#define WLC_E_LAST		72
+#define WLC_E_RSSI_LOW       	60      /* Send up rssi low event */
+//HTC_CSP_START
+#define WLC_E_LOAD_IND	61
+//HTC_CSP_END
+#define WLC_E_ESCAN_RESULT 69               
+#define WLC_E_WAKE_EVENT	70	
+#define WLC_E_RELOAD        71  
+#define WLC_E_LAST			72	
+	
 
 
 
@@ -205,7 +210,8 @@ typedef BWL_PRE_PACKED_STRUCT struct bcm_event {
 #define WLC_E_IF_ADD		1	
 #define WLC_E_IF_DEL		2	
 
-#define WLC_E_RELOAD_STATUS1	1
+#define WLC_E_RELOAD_STATUS1		1  
+
 
 #include <packed_section_end.h>
 

@@ -543,7 +543,12 @@ ai_corereg(si_t *sih, uint coreidx, uint regoff, uint mask, uint val)
 		r = (uint32*) ((uchar*) ai_setcoreidx(&sii->pub, coreidx) + regoff);
 	}
 	ASSERT(r != NULL);
-
+#ifdef HTC_KlocWork
+    if(r == NULL) {
+        printf("[HTCKW] r is NULL at ai_corereg\n");
+        return 0;
+    }
+#endif
 	/* mask and set */
 	if (mask || val) {
 		w = (R_REG(sii->osh, r) & ~mask) | val;

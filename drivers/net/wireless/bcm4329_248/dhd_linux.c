@@ -2120,6 +2120,17 @@ dhd_attach(osl_t *osh, struct dhd_bus *bus, uint bus_hdrlen)
 	memcpy(netdev_priv(net), &dhd, sizeof(dhd));
 	dhd->pub.osh = osh;
 
+	init_MUTEX(&dhd->proto_sem);
+	init_MUTEX(&dhd->sdsem);
+	/* Initialize other structure content */
+	init_waitqueue_head(&dhd->ioctl_resp_wait);
+	init_waitqueue_head(&dhd->ctrl_wait);
+
+	/* Initialize the spinlocks */
+	spin_lock_init(&dhd->sdlock);
+	spin_lock_init(&dhd->txqlock);
+	spin_lock_init(&dhd->dhd_lock);
+
 	/* Set network interface name if it was provided as module parameter */
 	if (iface_name[0]) {
 		int len;
@@ -2148,15 +2159,7 @@ dhd_attach(osl_t *osh, struct dhd_bus *bus, uint bus_hdrlen)
 #else
 	net->netdev_ops = NULL;
 #endif
-	init_MUTEX(&dhd->proto_sem);
-	/* Initialize other structure content */
-	init_waitqueue_head(&dhd->ioctl_resp_wait);
-	init_waitqueue_head(&dhd->ctrl_wait);
 
-	/* Initialize the spinlocks */
-	spin_lock_init(&dhd->sdlock);
-	spin_lock_init(&dhd->txqlock);
-	spin_lock_init(&dhd->dhd_lock);
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 25)) && 1
 	mutex_init(&dhd->wl_start_lock);
 #endif 
@@ -2187,7 +2190,6 @@ dhd_attach(osl_t *osh, struct dhd_bus *bus, uint bus_hdrlen)
 	dhd->timer.function = dhd_watchdog;
 
 	/* Initialize thread based operation and lock */
-	init_MUTEX(&dhd->sdsem);
 	if ((dhd_watchdog_prio >= 0) && (dhd_dpc_prio >= 0)) {
 		dhd->threads_only = TRUE;
 	}

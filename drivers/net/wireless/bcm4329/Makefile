@@ -6,10 +6,9 @@ DHDCFLAGS = -DLINUX -DBCMDRIVER -DBCMDONGLEHOST -DDHDTHREAD -DBCMWPA2         \
 	-Wall -Wstrict-prototypes -Werror -DOOB_INTR_ONLY -DCUSTOMER_HW2      \
 	-DDHD_USE_STATIC_BUF -DMMC_SDIO_ABORT -DDHD_DEBUG_TRAP -DSOFTAP       \
 	-DEMBEDDED_PLATFORM -DARP_OFFLOAD_SUPPORT -DPKT_FILTER_SUPPORT        \
-	-DKEEP_ALIVE -DCONFIG_FIRST_SCAN -DAP_ONLY \
-	-DCSCAN -DBCM4329_LOW_POWER -DPNO_SUPPORT -DHTC_KlocWork\
-	-Idrivers/net/wireless/bcm4329_248 -Idrivers/net/wireless/bcm4329_248/include
-	#-DPNO_SUPPORT -DCSCAN -DSET_RANDOM_MAC_SOFTAP -DGET_CUSTOM_MAC_ENABLE 
+	-DKEEP_ALIVE -DCONFIG_FIRST_SCAN -DAP_ONLY -DCSCAN -DPNO_SUPPORT      \
+	-Idrivers/net/wireless/bcm4329 -Idrivers/net/wireless/bcm4329/include
+	#-DSET_RANDOM_MAC_SOFTAP -DGET_CUSTOM_MAC_ENABLE 
 
 CFLAGS_wl_iw.o = -Wno-array-bounds
 DHDOFILES = dhd_linux.o linux_osl.o bcmutils.o dhd_common.o dhd_custom_gpio.o \
@@ -17,7 +16,7 @@ DHDOFILES = dhd_linux.o linux_osl.o bcmutils.o dhd_common.o dhd_custom_gpio.o \
 	dhd_linux_sched.o dhd_cdc.o bcmsdh_sdmmc.o bcmsdh.o bcmsdh_linux.o    \
 	bcmsdh_sdmmc_linux.o
 
-obj-$(CONFIG_BCM4329_248) += bcm4329.o
+obj-$(CONFIG_BCM4329) += bcm4329.o
 bcm4329-objs += $(DHDOFILES)
 EXTRA_CFLAGS = $(DHDCFLAGS)
 EXTRA_LDFLAGS += --strip-debug

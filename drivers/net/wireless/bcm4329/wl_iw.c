@@ -6318,8 +6318,9 @@ static int set_ap_cfg(struct net_device *dev, struct ap_profile *ap)
 
 	int res = 0;
 	int apsta_var = 0;
+#ifdef AP_ONLY
 	int closednet = 0;
-#ifndef AP_ONLY
+#else
 	int mpc = 0;
 	int iolen = 0;
 	int mkvar_err = 0;

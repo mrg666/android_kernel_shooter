@@ -58,9 +58,6 @@ extern void dhdsdio_isr(void * args);
 #endif /* KERNEL_VERSION(2, 6, 19) */
 #endif /* CONFIG_MACH_SANDGATE2G || CONFIG_MACH_LOGICPD_PXA270 */
 
-//kernel 3.0
-#define set_irq_wake(irq, on) irq_set_irq_wake(irq, on)
-
 /**
  * SDIO Host Controller info
  */
@@ -304,7 +301,7 @@ int bcmsdh_remove(struct device *dev)
 	MFREE(osh, sdhc, sizeof(bcmsdh_hc_t));
 	osl_detach(osh);
 
-#if !defined(BCMLXSDMMC)
+#if !defined(BCMLXSDMMC) || defined(OOB_INTR_ONLY)
 	dev_set_drvdata(dev, NULL);
 #endif /* !defined(BCMLXSDMMC) */
 
@@ -348,18 +345,18 @@ static struct pci_driver bcmsdh_pci_driver = {
 #endif
 	suspend:	NULL,
 	resume:		NULL,
-	};
+};
 
 
 extern uint sd_pci_slot;	/* Force detection to a particular PCI */
-							/* slot only . Allows for having multiple */
-							/* WL devices at once in a PC */
-							/* Only one instance of dhd will be */
-							/* usable at a time */
-							/* Upper word is bus number, */
-							/* lower word is slot number */
-							/* Default value of 0xFFFFffff turns this */
-							/* off */
+				/* slot only . Allows for having multiple */
+				/* WL devices at once in a PC */
+				/* Only one instance of dhd will be */
+				/* usable at a time */
+				/* Upper word is bus number, */
+				/* lower word is slot number */
+				/* Default value of 0xFFFFffff turns this */
+				/* off */
 module_param(sd_pci_slot, uint, 0);
 
 
@@ -388,7 +385,7 @@ bcmsdh_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 			          "Probing unknown device",
 			          pdev->bus->number, PCI_SLOT(pdev->devfn),
 			          pdev->vendor, pdev->device));
-			          return -ENODEV;
+			return -ENODEV;
 		}
 		SDLX_MSG(("%s: %s: bus %X, slot %X, vendor %X, device %X (good PCI location)\n",
 		          __FUNCTION__,
@@ -585,7 +582,6 @@ bcmsdh_unregister(void)
 }
 
 #if defined(OOB_INTR_ONLY)
-#if 0
 void bcmsdh_oob_intr_set(bool enable)
 {
 	static bool curstate = 1;
@@ -601,33 +597,19 @@ void bcmsdh_oob_intr_set(bool enable)
 	}
 	spin_unlock_irqrestore(&sdhcinfo->irq_lock, flags);
 }
-#else
-void bcmsdh_oob_intr_set(bool enable)
-{
-	if (enable)
-		enable_irq(sdhcinfo->oob_irq);
-	else
-		disable_irq(sdhcinfo->oob_irq);
-}
-#endif
+
 static irqreturn_t wlan_oob_irq(int irq, void *dev_id)
 {
 	dhd_pub_t *dhdp;
 
 	dhdp = (dhd_pub_t *)dev_get_drvdata(sdhcinfo->dev);
 
-#ifdef HW_OOB
 	bcmsdh_oob_intr_set(0);
-#endif
+
 	if (dhdp == NULL) {
 		SDLX_MSG(("Out of band GPIO interrupt fired way too early\n"));
-#ifndef HW_OOB
-		disable_irq(sdhcinfo->oob_irq);
-#endif
 		return IRQ_HANDLED;
 	}
-
-	WAKE_LOCK_TIMEOUT(dhdp, WAKE_LOCK_TMOUT, 25);
 
 	dhdsdio_isr((void *)dhdp->bus);
 
@@ -654,7 +636,7 @@ int bcmsdh_register_oob_intr(void * dhdp)
 		if (error)
 			return -ENODEV;
 
-		set_irq_wake(sdhcinfo->oob_irq, 1);
+		enable_irq_wake(sdhcinfo->oob_irq);
 		sdhcinfo->oob_irq_registered = TRUE;
 	}
 
@@ -679,15 +661,11 @@ void bcmsdh_unregister_oob_intr(void)
 {
 	SDLX_MSG(("%s: Enter\n", __FUNCTION__));
 
-	set_irq_wake(sdhcinfo->oob_irq, 0);
-	disable_irq(sdhcinfo->oob_irq);	/* just in case.. */
-	free_irq(sdhcinfo->oob_irq, NULL);
-	sdhcinfo->oob_irq_registered = FALSE;
-
-	// free device private data
-	if (sdhcinfo->dev && sdhcinfo->dev->p) {
-		kfree(sdhcinfo->dev->p);
-		sdhcinfo->dev->p = NULL;
+	if (sdhcinfo->oob_irq_registered) {
+		disable_irq_wake(sdhcinfo->oob_irq);
+		disable_irq(sdhcinfo->oob_irq);	/* just in case.. */
+		free_irq(sdhcinfo->oob_irq, NULL);
+		sdhcinfo->oob_irq_registered = FALSE;
 	}
 }
 #endif /* defined(OOB_INTR_ONLY) */

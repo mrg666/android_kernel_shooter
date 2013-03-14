@@ -1,4 +1,6 @@
 /*
+ * Broadcom SPI Low-Level Hardware Driver API
+ *
  * Copyright (C) 1999-2010, Broadcom Corporation
  * 
  *      Unless you and Broadcom execute a separate written software license
@@ -19,30 +21,16 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: epivers.h.in,v 13.25 2005/10/28 18:35:33 Exp $
- *
-*/
+ * $Id: bcmspi.h,v 13.3.10.2 2008/06/30 21:09:40 Exp $
+ */
 
-
-#ifndef _epivers_h_
-#define _epivers_h_
-
-#define	EPI_MAJOR_VERSION	4
-
-#define	EPI_MINOR_VERSION	218
-
-#define	EPI_RC_NUMBER		248
-
-#define	EPI_INCREMENTAL_NUMBER	23
-
-#define	EPI_BUILD_NUMBER	0
-
-#define	EPI_VERSION		4, 218, 248, 23
-
-#define	EPI_VERSION_NUM		0x04daf817
-
-
-#define	EPI_VERSION_STR		"4.218.248.23"
-#define	EPI_ROUTER_VERSION_STR	"4.219.248.23"
-
-#endif 
+extern void spi_devintr_off(sdioh_info_t *sd);
+extern void spi_devintr_on(sdioh_info_t *sd);
+extern bool spi_start_clock(sdioh_info_t *sd, uint16 new_sd_divisor);
+extern bool spi_controller_highspeed_mode(sdioh_info_t *sd, bool hsmode);
+extern bool spi_check_client_intr(sdioh_info_t *sd, int *is_dev_intr);
+extern bool spi_hw_attach(sdioh_info_t *sd);
+extern bool spi_hw_detach(sdioh_info_t *sd);
+extern void spi_sendrecv(sdioh_info_t *sd, uint8 *msg_out, uint8 *msg_in, int msglen);
+extern void spi_spinbits(sdioh_info_t *sd);
+extern void spi_waitbits(sdioh_info_t *sd, bool yield);

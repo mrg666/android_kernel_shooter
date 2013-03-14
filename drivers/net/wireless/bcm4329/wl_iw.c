@@ -99,10 +99,12 @@ typedef const struct si_pub  si_t;
 static struct net_device *priv_dev;
 static bool ap_cfg_running = FALSE;
 bool ap_fw_loaded = FALSE;
+#ifndef AP_ONLY
 static long ap_cfg_pid = -1;
+static struct completion ap_cfg_exited;
+#endif
 struct net_device *ap_net_dev = NULL;
 struct semaphore  ap_eth_sema;
-static struct completion ap_cfg_exited;
 static int wl_iw_set_ap_security(struct net_device *dev, struct ap_profile *ap);
 static int wl_iw_softap_deassoc_stations(struct net_device *dev, u8 *mac);
 #endif
@@ -5109,6 +5111,7 @@ wl_iw_set_pmksa(
 	uint i;
 	int ret = 0;
 	char eabuf[ETHER_ADDR_STR_LEN];
+	pmkid_t * pmkid_array = pmkid_list.pmkids.pmkid;
 
 	WL_WSEC(("%s: SIOCSIWPMKSA\n", dev->name));
 	CHECK_EXTRA_FOR_NULL(extra);
@@ -5139,18 +5142,18 @@ wl_iw_set_pmksa(
 		}
 
 		for (i = 0; i < pmkid_list.pmkids.npmkid; i++)
-			if (!bcmp(&iwpmksa->bssid.sa_data[0], &pmkid_list.pmkids.pmkid[i].BSSID,
+			if (!bcmp(&iwpmksa->bssid.sa_data[0], &pmkid_array[i].BSSID,
 				ETHER_ADDR_LEN))
 				break;
 
 		if ((pmkid_list.pmkids.npmkid > 0) && (i < pmkid_list.pmkids.npmkid)) {
-			bzero(&pmkid_list.pmkids.pmkid[i], sizeof(pmkid_t));
+			bzero(&pmkid_array[i], sizeof(pmkid_t));
 			for (; i < (pmkid_list.pmkids.npmkid - 1); i++) {
-				bcopy(&pmkid_list.pmkids.pmkid[i+1].BSSID,
-					&pmkid_list.pmkids.pmkid[i].BSSID,
+				bcopy(&pmkid_array[i+1].BSSID,
+					&pmkid_array[i].BSSID,
 					ETHER_ADDR_LEN);
-				bcopy(&pmkid_list.pmkids.pmkid[i+1].PMKID,
-					&pmkid_list.pmkids.pmkid[i].PMKID,
+				bcopy(&pmkid_array[i+1].PMKID,
+					&pmkid_array[i].PMKID,
 					WPA2_PMKID_LEN);
 			}
 			pmkid_list.pmkids.npmkid--;
@@ -5161,14 +5164,14 @@ wl_iw_set_pmksa(
 
 	else if (iwpmksa->cmd == IW_PMKSA_ADD) {
 		for (i = 0; i < pmkid_list.pmkids.npmkid; i++)
-			if (!bcmp(&iwpmksa->bssid.sa_data[0], &pmkid_list.pmkids.pmkid[i].BSSID,
+			if (!bcmp(&iwpmksa->bssid.sa_data[0], &pmkid_array[i].BSSID,
 				ETHER_ADDR_LEN))
 				break;
 		if (i < MAXPMKID) {
 			bcopy(&iwpmksa->bssid.sa_data[0],
-				&pmkid_list.pmkids.pmkid[i].BSSID,
+				&pmkid_array[i].BSSID,
 				ETHER_ADDR_LEN);
-			bcopy(&iwpmksa->pmkid[0], &pmkid_list.pmkids.pmkid[i].PMKID,
+			bcopy(&iwpmksa->pmkid[0], &pmkid_array[i].PMKID,
 				WPA2_PMKID_LEN);
 			if (i == pmkid_list.pmkids.npmkid)
 				pmkid_list.pmkids.npmkid++;
@@ -5181,10 +5184,10 @@ wl_iw_set_pmksa(
 			uint k;
 			k = pmkid_list.pmkids.npmkid;
 			WL_WSEC(("wl_iw_set_pmksa,IW_PMKSA_ADD - PMKID: %s = ",
-				bcm_ether_ntoa(&pmkid_list.pmkids.pmkid[k].BSSID,
+				bcm_ether_ntoa(&pmkid_array[k].BSSID,
 				eabuf)));
 			for (j = 0; j < WPA2_PMKID_LEN; j++)
-				WL_WSEC(("%02x ", pmkid_list.pmkids.pmkid[k].PMKID[j]));
+				WL_WSEC(("%02x ", pmkid_array[k].PMKID[j]));
 			WL_WSEC(("\n"));
 		}
 	}
@@ -5192,10 +5195,10 @@ wl_iw_set_pmksa(
 	for (i = 0; i < pmkid_list.pmkids.npmkid; i++) {
 		uint j;
 		WL_WSEC(("PMKID[%d]: %s = ", i,
-			bcm_ether_ntoa(&pmkid_list.pmkids.pmkid[i].BSSID,
+			bcm_ether_ntoa(&pmkid_array[i].BSSID,
 			eabuf)));
 		for (j = 0; j < WPA2_PMKID_LEN; j++)
-			WL_WSEC(("%02x ", pmkid_list.pmkids.pmkid[i].PMKID[j]));
+			WL_WSEC(("%02x ", pmkid_array[i].PMKID[j]));
 		WL_WSEC(("\n"));
 	}
 	WL_WSEC(("\n"));
@@ -6315,6 +6318,7 @@ static int set_ap_cfg(struct net_device *dev, struct ap_profile *ap)
 
 	int res = 0;
 	int apsta_var = 0;
+	int closednet = 0;
 #ifndef AP_ONLY
 	int mpc = 0;
 	int iolen = 0;
@@ -6422,6 +6426,14 @@ static int set_ap_cfg(struct net_device *dev, struct ap_profile *ap)
 			__FUNCTION__));
 	}
 
+#ifdef AP_ONLY
+	closednet = ap->closednet;
+
+	if ((res = dev_wlc_intvar_set(dev, "closednet", closednet))) {
+		WL_ERROR(("%s fail to set closednet %d\n\n", __FUNCTION__, ap->closednet));
+		goto fail;
+	}
+#else
 	iolen = wl_bssiovar_mkbuf("closednet",
 		bsscfg_index,  &ap->closednet, sizeof(ap->closednet)+4,
 		buf, sizeof(buf), &mkvar_err);
@@ -6430,7 +6442,7 @@ static int set_ap_cfg(struct net_device *dev, struct ap_profile *ap)
 		WL_ERROR(("%s failed to set 'closednet'for apsta \n", __FUNCTION__));
 		goto fail;
 	}
-
+#endif
 	
 	if ((ap->channel == 0) && (get_softap_auto_channel(dev, ap) < 0)) {
 		ap->channel = 1;

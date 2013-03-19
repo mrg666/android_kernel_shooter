@@ -34,7 +34,7 @@ static const char __module_cat(name,__LINE__)[]				  \
 /* One for each parameter, describing how to use it.  Some files do
    multiple of these per line, so can't just use MODULE_INFO. */
 #define MODULE_PARM_DESC(_parm, desc) \
-  __MODULE_INFO(parm, _parm, #_parm ":" desc)
+	__MODULE_INFO(parm, _parm, #_parm ":" desc)
 
 struct kernel_param;
 
@@ -367,6 +367,12 @@ extern int param_set_invbool(const char *val, const struct kernel_param *kp);
 extern int param_get_invbool(char *buffer, const struct kernel_param *kp);
 #define param_check_invbool(name, p) __param_check(name, p, bool)
 
+/* An int, which can only be set like a bool (though it shows as an int). */
+extern struct kernel_param_ops param_ops_bint;
+extern int param_set_bint(const char *val, const struct kernel_param *kp);
+#define param_get_bint param_get_int
+#define param_check_bint param_check_int
+
 /**
  * module_param_array - a parameter which is an array of some type
  * @name: the name of the array variable
@@ -395,7 +401,7 @@ extern int param_get_invbool(char *buffer, const struct kernel_param *kp);
  * module_param_named() for why this might be necessary.
  */
 #define module_param_array_named(name, array, type, nump, perm)		\
-	param_check_##type(name, &(array)[0]);                          \
+	param_check_##type(name, &(array)[0]);				\
 	static const struct kparam_array __param_arr_##name		\
 	= { .max = ARRAY_SIZE(array), .num = nump,                      \
 	    .ops = &param_ops_##type,					\

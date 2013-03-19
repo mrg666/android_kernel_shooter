@@ -55,7 +55,6 @@ static int lowmem_minfree[6] = {
 	16 * 1024,	/* 64MB */
 };
 static int lowmem_minfree_size = 4;
-static int lmk_fast_run = 1;
 
 static unsigned long lowmem_deathpending_timeout;
 
@@ -93,10 +92,10 @@ static int can_use_cma_pages(struct zone *zone, gfp_t gfp_mask)
 static int nr_free_zone_pages(struct zone *zone, gfp_t gfp_mask)
 {
 	int sum = zone_page_state(zone, NR_FREE_PAGES);
-	
+
 	if (!can_use_cma_pages(zone, gfp_mask))
 		sum -= zone_page_state(zone, NR_FREE_CMA_PAGES);
-	
+
 	return sum;
 }
 
@@ -259,7 +258,7 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 		rcu_read_unlock();
 
 	lowmem_print(4, "lowmem_shrink %lu, %x, return %d\n",
-		     nr_to_scan, sc->gfp_mask, rem);
+			nr_to_scan, sc->gfp_mask, rem);
 	mutex_unlock(&scan_mutex);
 	return rem;
 }
@@ -371,7 +370,6 @@ module_param_array_named(adj, lowmem_adj, int, &lowmem_adj_size,
 module_param_array_named(minfree, lowmem_minfree, uint, &lowmem_minfree_size,
 			 S_IRUGO | S_IWUSR);
 module_param_named(debug_level, lowmem_debug_level, uint, S_IRUGO | S_IWUSR);
-module_param_named(lmk_fast_run, lmk_fast_run, int, S_IRUGO | S_IWUSR);
 
 module_init(lowmem_init);
 module_exit(lowmem_exit);

@@ -64,37 +64,9 @@ static unsigned long lowmem_deathpending_timeout;
 			printk(x);			\
 	} while (0)
 
-static int can_use_cma_pages(struct zone *zone, gfp_t gfp_mask)
-{
-	int can_use = 0;
-	int mtype = allocflags_to_migratetype(gfp_mask);
-	int i = 0;
-	int *mtype_fallbacks = get_migratetype_fallbacks(mtype);
-
-	if (is_migrate_cma(mtype)) {
-		can_use = 1;
-	} else {
-		for (i = 0;; i++) {
-			int fallbacktype = mtype_fallbacks[i];
-
-			if (is_migrate_cma(fallbacktype)) {
-				can_use = 1;
-				break;
-			}
-
-			if (fallbacktype == MIGRATE_RESERVE)
-				break;
-		}
-	}
-	return can_use;
-}
-
 static int nr_free_zone_pages(struct zone *zone, gfp_t gfp_mask)
 {
 	int sum = zone_page_state(zone, NR_FREE_PAGES);
-
-	if (!can_use_cma_pages(zone, gfp_mask))
-		sum -= zone_page_state(zone, NR_FREE_CMA_PAGES);
 
 	return sum;
 }

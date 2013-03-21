@@ -62,17 +62,6 @@
 #ifndef __ASSEMBLY__
 
 #ifdef CONFIG_CPU_USE_DOMAINS
-#ifdef CONFIG_EMULATE_DOMAIN_MANAGER_V7
-void emulate_domain_manager_set(u32 domain);
-int emulate_domain_manager_data_abort(u32 dfsr, u32 dfar);
-int emulate_domain_manager_prefetch_abort(u32 ifsr, u32 ifar);
-void emulate_domain_manager_switch_mm(
-	unsigned long pgd_phys,
-	struct mm_struct *mm,
-	void (*switch_mm)(unsigned long pgd_phys, struct mm_struct *));
-
-#define set_domain(x) emulate_domain_manager_set(x)
-#else
 #define set_domain(x)					\
 	do {						\
 	__asm__ __volatile__(				\
@@ -80,7 +69,6 @@ void emulate_domain_manager_switch_mm(
 	  : : "r" (x));					\
 	isb();						\
 	} while (0)
-#endif
 
 #define modify_domain(dom,type)					\
 	do {							\

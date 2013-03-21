@@ -109,11 +109,6 @@ ENDPROC(cpu_v7_dcache_clean_area)
  */
 ENTRY(cpu_v7_switch_mm)
 #ifdef CONFIG_MMU
-#ifdef CONFIG_EMULATE_DOMAIN_MANAGER_V7
-	ldr	r2, =cpu_v7_switch_mm_private
-	b	emulate_domain_manager_switch_mm
-cpu_v7_switch_mm_private:
-#endif
 	mov	r2, #0
 	ldr	r1, [r1, #MM_CONTEXT_ID]	@ get mm->context.id
 	ALT_SMP(orr	r0, r0, #TTB_FLAGS_SMP)
@@ -390,10 +385,6 @@ __v7_setup:
 	ALT_SMP(orr	r8, r8, #TTB_FLAGS_SMP)
 	ALT_UP(orr	r8, r8, #TTB_FLAGS_UP)
 	mcr	p15, 0, r8, c2, c0, 1		@ load TTB1
-#ifndef CONFIG_EMULATE_DOMAIN_MANAGER_V7
-	mov     r10, #0x1f                      @ domains 0, 1 = manager
-	mcr     p15, 0, r10, c3, c0, 0          @ load domain access register
-#endif
 #if defined(CONFIG_ARCH_MSM_SCORPION) && !defined(CONFIG_MSM_SMP)
 	mov     r0, #0x33
 	mcr     p15, 3, r0, c15, c0, 3          @ set L2CR1

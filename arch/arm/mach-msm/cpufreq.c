@@ -55,7 +55,10 @@ static int override_cpu;
 static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq)
 {
 	int ret = 0;
+	int saved_sched_policy = -EINVAL;
+	int saved_sched_rt_prio = -EINVAL;
 	struct cpufreq_freqs freqs;
+	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
 
 	freqs.old = policy->cur;
 	if (override_cpu) {
@@ -66,15 +69,61 @@ static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq)
 	} else
 		freqs.new = new_freq;
 	freqs.cpu = policy->cpu;
+	
+	/*
+	 * Put the caller into SCHED_FIFO priority to avoid cpu starvation
+	 * in the acpuclk_set_rate path while increasing frequencies
+	 */
+
+	if (freqs.new > freqs.old && current->policy != SCHED_FIFO) {
+		saved_sched_policy = current->policy;
+		saved_sched_rt_prio = current->rt_priority;
+		sched_setscheduler_nocheck(current, SCHED_FIFO, &param);
+	}
+
 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+
 	ret = acpuclk_set_rate(policy->cpu, new_freq, SETRATE_CPUFREQ);
 	if (!ret)
 		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
 
+	/* Restore priority after clock ramp-up */
+	if (freqs.new > freqs.old && saved_sched_policy >= 0) {
+		param.sched_priority = saved_sched_rt_prio;
+		sched_setscheduler_nocheck(current, saved_sched_policy, &param);
+	}
 	return ret;
 }
 
 #ifdef CONFIG_SMP
+static int __cpuinit msm_cpufreq_cpu_callback(struct notifier_block *nfb,
+					unsigned long action, void *hcpu)
+{
+	unsigned int cpu = (unsigned long)hcpu;
+
+	switch (action) {
+	case CPU_ONLINE:
+	case CPU_ONLINE_FROZEN:
+		per_cpu(cpufreq_suspend, cpu).device_suspended = 0;
+		break;
+	case CPU_DOWN_PREPARE:
+	case CPU_DOWN_PREPARE_FROZEN:
+		mutex_lock(&per_cpu(cpufreq_suspend, cpu).suspend_mutex);
+		per_cpu(cpufreq_suspend, cpu).device_suspended = 1;
+		mutex_unlock(&per_cpu(cpufreq_suspend, cpu).suspend_mutex);
+		break;
+	case CPU_DOWN_FAILED:
+	case CPU_DOWN_FAILED_FROZEN:
+		per_cpu(cpufreq_suspend, cpu).device_suspended = 0;
+		break;
+	}
+	return NOTIFY_OK;
+}
+
+static struct notifier_block __refdata msm_cpufreq_cpu_notifier = {
+	.notifier_call = msm_cpufreq_cpu_callback,
+};
+
 static void set_cpu_work(struct work_struct *work)
 {
 	struct cpufreq_work_struct *cpu_work =
@@ -96,13 +145,13 @@ static int msm_cpufreq_target(struct cpufreq_policy *policy,
 	struct cpufreq_work_struct *cpu_work = NULL;
 	cpumask_var_t mask;
 
-	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
-		return -ENOMEM;
-
 	if (!cpu_active(policy->cpu)) {
 		pr_info("cpufreq: cpu %d is not active.\n", policy->cpu);
 		return -ENODEV;
 	}
+
+	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
+		return -ENOMEM;	
 #endif
 
 	mutex_lock(&per_cpu(cpufreq_suspend, policy->cpu).suspend_mutex);
@@ -146,13 +195,15 @@ static int msm_cpufreq_target(struct cpufreq_policy *policy,
 		wait_for_completion(&cpu_work->complete);
 	}
 
-	free_cpumask_var(mask);
 	ret = cpu_work->status;
 #else
 	ret = set_cpu_freq(policy, table[index].frequency);
 #endif
 
 done:
+#ifdef CONFIG_SMP
+	free_cpumask_var(mask);
+#endif
 	mutex_unlock(&per_cpu(cpufreq_suspend, policy->cpu).suspend_mutex);
 	return ret;
 }
@@ -177,6 +228,8 @@ static int __cpuinit msm_cpufreq_init(struct cpufreq_policy *policy)
 		return -ENODEV;
 
 	table = cpufreq_frequency_get_table(policy->cpu);
+	if (table == NULL)
+		return -ENODEV;
 	if (cpufreq_frequency_table_cpuinfo(policy, table)) {
 #ifdef CONFIG_MSM_CPU_FREQ_SET_MIN_MAX
 		policy->cpuinfo.min_freq = CONFIG_MSM_CPU_FREQ_MIN;
@@ -315,6 +368,7 @@ static int __init msm_cpufreq_register(void)
 
 #ifdef CONFIG_SMP
 	msm_cpufreq_wq = create_workqueue("msm-cpufreq");
+	register_hotcpu_notifier(&msm_cpufreq_cpu_notifier);
 #endif
 
 	register_pm_notifier(&msm_cpufreq_pm_notifier);

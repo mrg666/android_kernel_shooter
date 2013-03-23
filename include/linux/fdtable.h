@@ -146,6 +146,7 @@ extern void __fd_install(struct files_struct *files,
 
 extern int __close_fd(struct files_struct *files,
 			unsigned int fd);
+
 extern struct kmem_cache *files_cachep;
 
 #endif /* __LINUX_FDTABLE_H */

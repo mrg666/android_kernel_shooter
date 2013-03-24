@@ -38,22 +38,18 @@ ifdef CONFIG_ARCH_QSD8X50
 endif
 
 obj-$(CONFIG_SMP) += headsmp.o platsmp.o
+obj-$(CONFIG_HOTPLUG_CPU) += hotplug.o
 
 obj-$(CONFIG_MSM_CPU_AVS) += avs.o
 obj-$(CONFIG_MSM_AVS_HW) += avs_hw.o
 obj-$(CONFIG_CPU_V6) += idle-v6.o
 obj-$(CONFIG_CPU_V7) += idle-v7.o
-obj-$(CONFIG_MSM_JTAG_V7) += jtag-v7.o
+obj-$(CONFIG_MSM_JTAG) += jtag.o
 
-msm-etm-objs := cp14.o etm.o
+msm-etm-objs := etm.o
 obj-$(CONFIG_MSM_ETM) += msm-etm.o
 
-ifdef CONFIG_MSM_QDSS
-	obj-y += qdss-debug.o
-	obj-y += qdss-etb.o qdss-tpiu.o
-	obj-y += qdss-funnel.o
-	obj-y += qdss-ptm.o
-endif
+obj-$(CONFIG_MSM_QDSS) += qdss-etb.o qdss-tpiu.o qdss-funnel.o qdss-ptm.o
 
 ifdef CONFIG_MSM_NONSMD_PACKET_FILTER
 obj-$(CONFIG_MSM_SMD) += htc_port_list_lte.o
@@ -186,7 +182,7 @@ ifdef CONFIG_PM
 	obj-$(CONFIG_ARCH_MSM7X01A) += pm.o
 	obj-y += pm-boot.o
 else
-	obj-y += no-pm.o hotplug.o
+	obj-y += no-pm.o
 endif
 obj-y += pwrtest.o
 

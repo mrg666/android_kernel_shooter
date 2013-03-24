@@ -1,7 +1,7 @@
 /*
  *  Copyright (c) 2003 ARM Limited
  *  All Rights Reserved
- *  Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+ *  Copyright (c) 2010, 2012 Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -25,10 +25,6 @@ ENTRY(msm_secondary_startup)
 	sub	r4, r4, r5		@ determine virtual/phys offsets
 	add	r6, r6, r4		@ apply
 pen:
-	wfe
-	dsb				@ ensure subsequent access is
-					@ after event
-
 	ldr	r7, [r6]		@ pen_rel has cpu to remove from reset
 	cmp	r7, r0			@ are we lucky?
 	bne	pen
@@ -37,9 +33,8 @@ pen:
 	 * we've been released from the holding pen: secondary_stack
 	 * should now contain the SVC stack for this core
 	 */
-	mvn	r7, #0			@ -1 to registers
-	str r7,[r6]			@ back to the pen for ack
 	b	secondary_startup
+ENDPROC(msm_secondary_startup)
 
 1:	.long	.
 	.long	pen_release

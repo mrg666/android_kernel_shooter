@@ -16,7 +16,8 @@
 #include <linux/cpuidle.h>
 #include <linux/cpu_pm.h>
 
-#include "cpuidle.h"
+#include <mach/cpuidle.h>
+
 #include "pm.h"
 
 static DEFINE_PER_CPU_SHARED_ALIGNED(struct cpuidle_device, msm_cpuidle_devs);

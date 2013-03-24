@@ -82,11 +82,8 @@ ENTRY(msm_pm_collapse)
 	stmia   r0!, {r1-r3}
 #endif
 
-#ifdef CONFIG_MSM_DEBUG_ACROSS_PC
-	bl      msm_save_jtag_debug
-#endif
-#ifdef CONFIG_MSM_TRACE_ACROSS_PC
-	bl      etm_save_reg_check
+#ifdef CONFIG_MSM_JTAG
+	bl      msm_jtag_save_state
 #endif
 
 	ldr	r0, =msm_pm_flush_l2_flag
@@ -128,11 +125,8 @@ skip:	ldr	r0, =saved_state
 #if defined(CONFIG_MSM_FIQ_SUPPORT)
 	cpsie   f
 #endif
-#ifdef CONFIG_MSM_TRACE_ACROSS_PC
-	bl	etm_restore_reg_check
-#endif
-#ifdef CONFIG_MSM_DEBUG_ACROSS_PC
-	bl	msm_restore_jtag_debug
+#ifdef CONFIG_MSM_JTAG
+	bl	msm_jtag_restore_state
 #endif
 	ldr     r0, =saved_state        /* restore registers */
 #if (NR_CPUS >= 2)
@@ -222,11 +216,8 @@ msm_pm_pa_to_va:
 	isb
 	stmfd   sp!, {lr}
 	bl      v7_flush_kern_cache_all
-#ifdef CONFIG_MSM_TRACE_ACROSS_PC
-	bl      etm_restore_reg_check
-#endif
-#ifdef CONFIG_MSM_DEBUG_ACROSS_PC
-	bl      msm_restore_jtag_debug
+#ifdef CONFIG_MSM_JTAG
+	bl      msm_jtag_restore_state
 #endif
 	ldmfd   sp!, {lr}
 	mov     r0, #1

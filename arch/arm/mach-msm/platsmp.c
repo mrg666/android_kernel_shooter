@@ -28,7 +28,7 @@
 #include "pm.h"
 #include "scm-boot.h"
 
-int pen_release = -1;
+volatile int pen_release = -1;
 
 /*
  * Write pen_release in a way that is guaranteed to be visible to all

@@ -78,6 +78,7 @@ config ARCH_MSM8X60
 	select MSM_NATIVE_RESTART
 	select CPU_HAS_L2_PMU
 	select MSM_SPM_V1
+	select MSM_PM8X60 if PM
 
 config ARCH_MSM8X60_LTE
 	bool "MSM8X60_LTE"
@@ -2136,6 +2137,10 @@ config MSM_SECURE_IO
 	bool
 
 config MSM_NATIVE_RESTART
+	bool
+
+config MSM_PM8X60
+	depends on PM
 	bool
 
 config MSM_BUS_SCALING

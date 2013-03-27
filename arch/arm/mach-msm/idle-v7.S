@@ -49,7 +49,9 @@ ENTRY(msm_pm_collapse)
 #if (NR_CPUS >= 2)
 	mrc	p15, 0, r1, c0, c0, 5	/* MPIDR */
 	ands	r1, r1, #15		/* What CPU am I */
-	addne	r0, r0, #CPU_SAVED_STATE_SIZE
+	mov     r2, #CPU_SAVED_STATE_SIZE
+	mul     r1, r1, r2
+	add     r0, r0, r1
 #endif
 
 	stmia   r0!, {r4-r14}
@@ -98,18 +100,14 @@ ENTRY(msm_pm_collapse)
 	cmp	r1, #1
 	bne	skip
 	bl	v7_flush_dcache_all
+	b       skip2
 
 skip:	ldr	r0, =saved_state
 	ldr	r1, =saved_state_end
 	sub	r1, r1, r0
 	bl	v7_flush_kern_dcache_area
 
-	mrc     p15, 0, r4, c1, c0, 0    /* read current CR    */
-	bic     r0, r4, #(1 << 2)        /* clear dcache bit   */
-	bic     r0, r0, #(1 << 12)       /* clear icache bit   */
-	mcr     p15, 0, r0, c1, c0, 0    /* disable d/i cache  */
-
-	dsb
+skip2:
 #ifdef CONFIG_ARCH_MSM_KRAIT
 	ldr	r0, =SCM_SVC_BOOT
 	ldr	r1, =SCM_CMD_TERMINATE_PC
@@ -117,10 +115,18 @@ skip:	ldr	r0, =saved_state
 	ldr	r2, [r2]
 	bl	scm_call_atomic1
 #else
+	mrc     p15, 0, r4, c1, c0, 0    /* read current CR    */
+	bic     r0, r4, #(1 << 2)        /* clear dcache bit   */
+	bic     r0, r0, #(1 << 12)       /* clear icache bit   */
+	mcr     p15, 0, r0, c1, c0, 0    /* disable d/i cache  */
+	dsb
+
 	wfi
-#endif
+
 	mcr     p15, 0, r4, c1, c0, 0    /* restore d/i cache  */
 	isb
+#endif
+
 
 #if defined(CONFIG_MSM_FIQ_SUPPORT)
 	cpsie   f
@@ -132,7 +138,9 @@ skip:	ldr	r0, =saved_state
 #if (NR_CPUS >= 2)
 	mrc	p15, 0, r1, c0, c0, 5	/* MPIDR */
 	ands	r1, r1, #15		/* What CPU am I */
-	addne	r0, r0, #CPU_SAVED_STATE_SIZE
+	mov     r2, #CPU_SAVED_STATE_SIZE
+	mul     r2, r2, r1
+	add     r0, r0, r2
 #endif
 
 	ldmfd   r0, {r4-r14}
@@ -149,21 +157,18 @@ ENTRY(msm_pm_collapse_exit)
 	mov     r1, #'A'
 	str     r1, [r0, #0x00C]
 #endif
-#ifdef CONFIG_ARCH_MSM7X30
-	bl	__cpu_early_init
-
-.globl _cpu_early_init_complete
-_cpu_early_init_complete:
-#endif
-	ldr     r1, =saved_state_end
+	ldr     r1, =saved_state
 	ldr     r2, =msm_pm_collapse_exit
 	adr     r3, msm_pm_collapse_exit
 	add     r1, r1, r3
 	sub     r1, r1, r2
+	add     r1, r1, #CPU_SAVED_STATE_SIZE
 #if (NR_CPUS >= 2)
 	mrc	p15, 0, r2, c0, c0, 5	/* MPIDR */
 	ands	r2, r2, #15		/* What CPU am I */
-	subeq	r1, r1, #CPU_SAVED_STATE_SIZE
+	mov     r3, #CPU_SAVED_STATE_SIZE
+	mul     r2, r2, r3
+	add     r1, r1, r2
 #endif
 
 #ifdef CONFIG_MSM_CPU_AVS
@@ -212,14 +217,12 @@ msm_pm_pa_to_va:
 	mcr     p15, 0, r3, c8, c7, 0   /* UTLBIALL */
 	mcr     p15, 0, r3, c7, c5, 6   /* BPIALL */
 	dsb
-
 	isb
-	stmfd   sp!, {lr}
-	bl      v7_flush_kern_cache_all
 #ifdef CONFIG_MSM_JTAG
+	stmfd   sp!, {lr}
 	bl      msm_jtag_restore_state
-#endif
 	ldmfd   sp!, {lr}
+#endif
 	mov     r0, #1
 	bx      lr
 	nop
@@ -265,11 +268,7 @@ msm_pm_pc_pgd:
 	.long	0x0
 
 saved_state:
-#if (NR_CPUS >= 2)
-	.space	CPU_SAVED_STATE_SIZE * 2 /* This code only supports 2 cores */
-#else
-	.space	CPU_SAVED_STATE_SIZE
-#endif
+	.space  CPU_SAVED_STATE_SIZE * NR_CPUS
 saved_state_end:
 
 msm_pm_boot_vector:

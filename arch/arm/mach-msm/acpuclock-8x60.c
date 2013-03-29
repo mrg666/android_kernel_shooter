@@ -224,8 +224,8 @@ static struct clkctl_acpu_speed acpu_freq_tbl_8x60[] = {
   { {1, 1}, 1296000,  ACPU_SCPLL, 0, 0, 1, 0x18, L2(9),  1150000, 0x03006000},
   { {1, 1}, 1404000,  ACPU_SCPLL, 0, 0, 1, 0x1A, L2(10), 1200000, 0x03006000},
   { {1, 1}, 1512000,  ACPU_SCPLL, 0, 0, 1, 0x1C, L2(11), 1250000, 0x03006000},
-  { {1, 1}, 1620000,  ACPU_SCPLL, 0, 0, 1, 0x1F, L2(11), 1300000, 0x03006000},
-  { {1, 1}, 1728000,  ACPU_SCPLL, 0, 0, 1, 0x21, L2(11), 1350000, 0x03006000},
+  { {1, 1}, 1620000,  ACPU_SCPLL, 0, 0, 1, 0x1E, L2(11), 1300000, 0x03006000},
+  { {1, 1}, 1728000,  ACPU_SCPLL, 0, 0, 1, 0x20, L2(11), 1350000, 0x03006000},
   { {0, 0}, 0 },
 };
 
@@ -810,7 +810,7 @@ static __init struct clkctl_acpu_speed *select_freq_plan(void)
 	/* Truncate the table based to max_khz. */
 	for (f = acpu_freq_tbl; f->acpuclk_khz != 0; f++) {
 		if (f->acpuclk_khz > max_khz) {
-			f->acpuclk_khz = 0;
+			/* f->acpuclk_khz = 0; */
 			break;
 		}
 	}

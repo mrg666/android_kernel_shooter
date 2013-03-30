@@ -810,7 +810,7 @@ static __init struct clkctl_acpu_speed *select_freq_plan(void)
 	/* Truncate the table based to max_khz. */
 	for (f = acpu_freq_tbl; f->acpuclk_khz != 0; f++) {
 		if (f->acpuclk_khz > max_khz) {
-			/* f->acpuclk_khz = 0; */
+			f->acpuclk_khz = 0; 
 			break;
 		}
 	}

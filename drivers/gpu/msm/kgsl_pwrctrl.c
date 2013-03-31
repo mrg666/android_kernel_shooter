@@ -344,7 +344,8 @@ static void kgsl_pwrctrl_busy_time(struct kgsl_device *device, bool on_time)
 	do_gettimeofday(&(b->start));
 }
 
-void kgsl_pwrctrl_clk(struct kgsl_device *device, int state)
+void kgsl_pwrctrl_clk(struct kgsl_device *device, int state,
+					int requested_state)
 {
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 	int i = 0;
@@ -356,7 +357,7 @@ void kgsl_pwrctrl_clk(struct kgsl_device *device, int state)
 				if (pwr->grp_clks[i])
 					clk_disable(pwr->grp_clks[i]);
 			if ((pwr->pwrlevels[0].gpu_freq > 0) &&
-				(device->requested_state != KGSL_STATE_NAP))
+				(requested_state != KGSL_STATE_NAP))
 				clk_set_rate(pwr->grp_clks[0],
 					pwr->pwrlevels[pwr->num_pwrlevels - 1].
 					gpu_freq);
@@ -708,7 +709,7 @@ _nap(struct kgsl_device *device)
 			return -EBUSY;
 		}
 		kgsl_pwrctrl_irq(device, KGSL_PWRFLAGS_OFF);
-		kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_OFF);
+		kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_OFF, KGSL_STATE_NAP);
 		kgsl_pwrctrl_set_state(device, KGSL_STATE_NAP);
 		if (device->idle_wakelock.name)
 			wake_unlock(&device->idle_wakelock);
@@ -751,7 +752,7 @@ _sleep(struct kgsl_device *device)
 				pwr->pwrlevels[pwr->num_pwrlevels - 1].
 				gpu_freq);
 		_sleep_accounting(device);
-		kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_OFF);
+		kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_OFF, KGSL_STATE_SLEEP);
 		kgsl_pwrctrl_set_state(device, KGSL_STATE_SLEEP);
 		wake_unlock(&device->idle_wakelock);
 		pm_qos_update_request(&device->pm_qos_req_dma,
@@ -853,7 +854,7 @@ void kgsl_pwrctrl_wake(struct kgsl_device *device)
 		/* fall through */
 	case KGSL_STATE_NAP:
 		/* Turn on the core clocks */
-		kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_ON);
+		kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_ON, KGSL_STATE_ACTIVE);
 		/* Enable state before turning on irq */
 		kgsl_pwrctrl_set_state(device, KGSL_STATE_ACTIVE);
 		kgsl_pwrctrl_irq(device, KGSL_PWRFLAGS_ON);
@@ -879,7 +880,7 @@ void kgsl_pwrctrl_enable(struct kgsl_device *device)
 {
 	/* Order pwrrail/clk sequence based upon platform */
 	kgsl_pwrctrl_pwrrail(device, KGSL_PWRFLAGS_ON);
-	kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_ON);
+	kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_ON, KGSL_STATE_ACTIVE);
 	kgsl_pwrctrl_axi(device, KGSL_PWRFLAGS_ON);
 }
 EXPORT_SYMBOL(kgsl_pwrctrl_enable);
@@ -888,7 +889,7 @@ void kgsl_pwrctrl_disable(struct kgsl_device *device)
 {
 	/* Order pwrrail/clk sequence based upon platform */
 	kgsl_pwrctrl_axi(device, KGSL_PWRFLAGS_OFF);
-	kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_OFF);
+	kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_OFF, KGSL_STATE_SLEEP);
 	kgsl_pwrctrl_pwrrail(device, KGSL_PWRFLAGS_OFF);
 }
 EXPORT_SYMBOL(kgsl_pwrctrl_disable);

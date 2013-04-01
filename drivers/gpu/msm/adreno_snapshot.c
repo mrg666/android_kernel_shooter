@@ -155,7 +155,7 @@ static int snapshot_rb(struct kgsl_device *device, void *snapshot,
 	kgsl_regread(device, REG_CP_RB_BASE, &rbbase);
 
 	/* Get the physical address of the MMU pagetable */
-	ptbase = kgsl_mmu_get_current_ptbase(device);
+	ptbase = kgsl_mmu_get_current_ptbase(&device->mmu);
 
 	/* Get the current read pointers for the RB */
 	kgsl_regread(device, REG_CP_RB_RPTR, &rptr);
@@ -364,7 +364,7 @@ void *adreno_snapshot(struct kgsl_device *device, void *snapshot, int *remain,
 	objbufptr = 0;
 
 	/* Get the physical address of the MMU pagetable */
-	ptbase = kgsl_mmu_get_current_ptbase(device);
+	ptbase = kgsl_mmu_get_current_ptbase(&device->mmu);
 
 	/* Dump the ringbuffer */
 	snapshot = kgsl_snapshot_add_section(device, KGSL_SNAPSHOT_SECTION_RB,

@@ -103,35 +103,37 @@ struct kgsl_pagetable {
 		unsigned int max_entries;
 	} stats;
 	const struct kgsl_mmu_pt_ops *pt_ops;
+	unsigned int tlb_flags;
 	void *priv;
 };
 
+struct kgsl_mmu;
+
 struct kgsl_mmu_ops {
-	int (*mmu_init) (struct kgsl_device *device);
-	int (*mmu_close) (struct kgsl_device *device);
-	int (*mmu_start) (struct kgsl_device *device);
-	int (*mmu_stop) (struct kgsl_device *device);
-	void (*mmu_setstate) (struct kgsl_device *device,
+	int (*mmu_init) (struct kgsl_mmu *mmu);
+	int (*mmu_close) (struct kgsl_mmu *mmu);
+	int (*mmu_start) (struct kgsl_mmu *mmu);
+	int (*mmu_stop) (struct kgsl_mmu *mmu);
+	void (*mmu_setstate) (struct kgsl_mmu *mmu,
 		struct kgsl_pagetable *pagetable);
-	void (*mmu_device_setstate) (struct kgsl_device *device,
+	void (*mmu_device_setstate) (struct kgsl_mmu *mmu,
 					uint32_t flags);
-	void (*mmu_pagefault) (struct kgsl_device *device);
+	void (*mmu_pagefault) (struct kgsl_mmu *mmu);
 	unsigned int (*mmu_get_current_ptbase)
-			(struct kgsl_device *device);
+			(struct kgsl_mmu *mmu);
 };
 
 struct kgsl_mmu_pt_ops {
 	int (*mmu_map) (void *mmu_pt,
 			struct kgsl_memdesc *memdesc,
-			unsigned int protflags);
+			unsigned int protflags,
+			unsigned int *tlb_flags);
 	int (*mmu_unmap) (void *mmu_pt,
 			struct kgsl_memdesc *memdesc);
 	void *(*mmu_create_pagetable) (void);
 	void (*mmu_destroy_pagetable) (void *pt);
 	int (*mmu_pt_equal) (struct kgsl_pagetable *pt,
 			unsigned int pt_base);
-	unsigned int (*mmu_pt_get_flags) (struct kgsl_pagetable *pt,
-				enum kgsl_deviceid id);
 };
 
 struct kgsl_mmu {
@@ -168,7 +170,7 @@ int kgsl_mmu_map_global(struct kgsl_pagetable *pagetable,
 int kgsl_mmu_unmap(struct kgsl_pagetable *pagetable,
 		    struct kgsl_memdesc *memdesc);
 unsigned int kgsl_virtaddr_to_physaddr(void *virtaddr);
-void kgsl_setstate(struct kgsl_device *device, uint32_t flags);
+void kgsl_setstate(struct kgsl_mmu *mmu, uint32_t flags);
 void kgsl_mmu_device_setstate(struct kgsl_device *device, uint32_t flags);
 void kgsl_mmu_setstate(struct kgsl_device *device,
 			struct kgsl_pagetable *pt);

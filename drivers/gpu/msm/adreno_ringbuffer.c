@@ -551,7 +551,7 @@ adreno_ringbuffer_issueibcmds(struct kgsl_device_private *dev_priv,
 		*cmds++ = ibdesc[i].sizedwords;
 	}
 
-	kgsl_setstate(device,
+	kgsl_setstate(&device->mmu,
 		      kgsl_mmu_pt_get_flags(device->mmu.hwpagetable,
 					device->id));
 

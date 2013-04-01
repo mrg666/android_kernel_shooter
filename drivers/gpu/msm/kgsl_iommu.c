@@ -173,17 +173,15 @@ static int kgsl_get_iommu_ctxt(struct kgsl_iommu *iommu,
 	return ret;
 }
 
-static void kgsl_iommu_setstate(struct kgsl_device *device,
+static void kgsl_iommu_setstate(struct kgsl_mmu *mmu,
 				struct kgsl_pagetable *pagetable)
 {
-	struct kgsl_mmu *mmu = &device->mmu;
-
 	if (mmu->flags & KGSL_FLAGS_STARTED) {
 		/* page table not current, then setup mmu to use new
 		 *  specified page table
 		 */
 		if (mmu->hwpagetable != pagetable) {
-			kgsl_idle(device, KGSL_TIMEOUT_DEFAULT);
+			kgsl_idle(mmu->device, KGSL_TIMEOUT_DEFAULT);
 			kgsl_detach_pagetable_iommu_domain(mmu);
 			mmu->hwpagetable = pagetable;
 			if (mmu->hwpagetable)
@@ -192,7 +190,7 @@ static void kgsl_iommu_setstate(struct kgsl_device *device,
 	}
 }
 
-static int kgsl_iommu_init(struct kgsl_device *device)
+static int kgsl_iommu_init(struct kgsl_mmu *mmu)
 {
 	/*
 	 * intialize device mmu
@@ -200,10 +198,7 @@ static int kgsl_iommu_init(struct kgsl_device *device)
 	 * call this with the global lock held
 	 */
 	int status = 0;
-	struct kgsl_mmu *mmu = &device->mmu;
 	struct kgsl_iommu *iommu;
-
-	mmu->device = device;
 
 	iommu = kzalloc(sizeof(struct kgsl_iommu), GFP_KERNEL);
 	if (!iommu) {
@@ -212,27 +207,26 @@ static int kgsl_iommu_init(struct kgsl_device *device)
 		return -ENOMEM;
 	}
 
-	status = kgsl_get_iommu_ctxt(iommu, device);
+	status = kgsl_get_iommu_ctxt(iommu, mmu->device);
 	if (status) {
 		kfree(iommu);
 		iommu = NULL;
 	}
 	mmu->priv = iommu;
 
-	dev_info(device->dev, "|%s| MMU type set for device is IOMMU\n",
+	dev_info(mmu->device->dev, "|%s| MMU type set for device is IOMMU\n",
 			__func__);
 	return status;
 }
 
-static int kgsl_iommu_start(struct kgsl_device *device)
+static int kgsl_iommu_start(struct kgsl_mmu *mmu)
 {
 	int status;
-	struct kgsl_mmu *mmu = &device->mmu;
 
 	if (mmu->flags & KGSL_FLAGS_STARTED)
 		return 0;
 
-	kgsl_regwrite(device, MH_MMU_CONFIG, 0x00000000);
+	kgsl_regwrite(mmu->device, MH_MMU_CONFIG, 0x00000000);
 	if (mmu->defaultpagetable == NULL)
 		mmu->defaultpagetable =
 			kgsl_mmu_getpagetable(KGSL_MMU_GLOBAL_PT);
@@ -278,7 +272,8 @@ kgsl_iommu_unmap(void *mmu_specific_pt,
 static int
 kgsl_iommu_map(void *mmu_specific_pt,
 			struct kgsl_memdesc *memdesc,
-			unsigned int protflags)
+			unsigned int protflags,
+			unsigned int *tlb_flags)
 {
 	int ret;
 	unsigned int iommu_virt_addr;
@@ -299,17 +294,24 @@ kgsl_iommu_map(void *mmu_specific_pt,
 		return ret;
 	}
 
+#ifdef CONFIG_KGSL_PER_PROCESS_PAGE_TABLE
+	/*
+	 * Flushing only required if per process pagetables are used. With
+	 * global case, flushing will happen inside iommu_map function
+	 */
+	if (!ret)
+		*tlb_flags = UINT_MAX;
+#endif
 	return ret;
 }
 
-static int kgsl_iommu_stop(struct kgsl_device *device)
+static int kgsl_iommu_stop(struct kgsl_mmu *mmu)
 {
 	/*
 	 *  stop device mmu
 	 *
 	 *  call this with the global lock held
 	 */
-	struct kgsl_mmu *mmu = &device->mmu;
 
 	if (mmu->flags & KGSL_FLAGS_STARTED) {
 		/* detach iommu attachment */
@@ -321,9 +323,8 @@ static int kgsl_iommu_stop(struct kgsl_device *device)
 	return 0;
 }
 
-static int kgsl_iommu_close(struct kgsl_device *device)
+static int kgsl_iommu_close(struct kgsl_mmu *mmu)
 {
-	struct kgsl_mmu *mmu = &device->mmu;
 	if (mmu->defaultpagetable)
 		kgsl_mmu_putpagetable(mmu->defaultpagetable);
 
@@ -331,13 +332,13 @@ static int kgsl_iommu_close(struct kgsl_device *device)
 }
 
 static unsigned int
-kgsl_iommu_get_current_ptbase(struct kgsl_device *device)
+kgsl_iommu_get_current_ptbase(struct kgsl_mmu *mmu)
 {
 	/* Current base is always the hwpagetables domain as we
 	 * do not use per process pagetables right not for iommu.
 	 * This will change when we switch to per process pagetables.
 	 */
-	return (unsigned int)device->mmu.hwpagetable->priv;
+	return (unsigned int)mmu->hwpagetable->priv;
 }
 
 struct kgsl_mmu_ops iommu_ops = {
@@ -357,5 +358,4 @@ struct kgsl_mmu_pt_ops iommu_pt_ops = {
 	.mmu_create_pagetable = kgsl_iommu_create_pagetable,
 	.mmu_destroy_pagetable = kgsl_iommu_destroy_pagetable,
 	.mmu_pt_equal = kgsl_iommu_pt_equal,
-	.mmu_pt_get_flags = NULL,
 };

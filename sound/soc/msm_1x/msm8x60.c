@@ -34,9 +34,9 @@
 #include <sound/control.h>
 #include <asm/dma.h>
 #include <asm/mach-types.h>
-#include <mach/qdsp6v2_1x/snddev_icodec.h>
-#include <mach/qdsp6v2_1x/audio_dev_ctl.h>
-#include <mach/qdsp6v2_1x/q6afe.h>
+#include <mach/qdsp6v3/snddev_icodec.h>
+#include <mach/qdsp6v3/audio_dev_ctl.h>
+#include <mach/qdsp6v3/q6afe.h>
 
 #define LOOPBACK_ENABLE         0x1
 #define LOOPBACK_DISABLE        0x0
@@ -831,7 +831,7 @@ static int pcm_route_put_rx(struct snd_kcontrol *kcontrol,
 			((int)AUDDEV_CLNT_DEC-1));
 	if (!set) {
 		session_route.playback_session[session_id][dev_info->copp_id]
-			= DEVICE_IGNORE;
+			= (unsigned char) DEVICE_IGNORE;
 		broadcast_event(AUDDEV_EVT_DEV_RLS,
 				route_cfg.dev_id,
 				session_mask);
@@ -885,7 +885,7 @@ static int pcm_route_put_tx(struct snd_kcontrol *kcontrol,
 			((int)AUDDEV_CLNT_ENC-1));
 	if (!set) {
 		session_route.capture_session[session_id][dev_info->copp_id]
-			= DEVICE_IGNORE;
+			= (unsigned char) DEVICE_IGNORE;
 		broadcast_event(AUDDEV_EVT_DEV_RLS,
 				route_cfg.dev_id,
 				session_mask);

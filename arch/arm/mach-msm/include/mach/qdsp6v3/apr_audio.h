@@ -1,4 +1,3 @@
-
 /*
  *
  * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
@@ -11,6 +10,11 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  *
  */
 
@@ -40,36 +44,9 @@
 #define VOICE_RECORD_RX 0x8003		/* index = 12 */
 #define VOICE_RECORD_TX 0x8004		/* index = 13 */
 #define VOICE_PLAYBACK_TX 0x8005	/* index = 14 */
-
-/* Slimbus Multi channel port id pool  */
-#define SLIMBUS_0_RX		0x4000		/* index = 15 */
-#define SLIMBUS_0_TX		0x4001		/* index = 16 */
-#define SLIMBUS_1_RX		0x4002		/* index = 17 */
-#define SLIMBUS_1_TX		0x4003		/* index = 18 */
-#define SLIMBUS_2_RX		0x4004
-#define SLIMBUS_2_TX		0x4005
-#define SLIMBUS_3_RX		0x4006
-#define SLIMBUS_3_TX		0x4007
-#define SLIMBUS_4_RX		0x4008
-#define SLIMBUS_4_TX		0x4009		/* index = 24 */
-
-#define INT_BT_SCO_RX 0x3000		/* index = 25 */
-#define INT_BT_SCO_TX 0x3001		/* index = 26 */
-#define INT_BT_A2DP_RX 0x3002		/* index = 27 */
-#define INT_FM_RX 0x3004		/* index = 28 */
-#define INT_FM_TX 0x3005		/* index = 29 */
-#define RT_PROXY_PORT_001_RX	0x2000    /* index = 30 */
-#define RT_PROXY_PORT_001_TX	0x2001    /* index = 31 */
-
 #define AFE_PORT_INVALID 0xFFFF
 
 #define AFE_PORT_CMD_START 0x000100ca
-
-#define AFE_EVENT_RTPORT_START 0
-#define AFE_EVENT_RTPORT_STOP 1
-#define AFE_EVENT_RTPORT_LOW_WM 2
-#define AFE_EVENT_RTPORT_HI_WM 3
-
 struct afe_port_start_command {
 	struct apr_hdr hdr;
 	u16 port_id;
@@ -238,53 +215,12 @@ struct afe_port_hdmi_cfg {
 				/* HDMI_non_Linaer = 1 */
 } __attribute__ ((packed));
 
-
-/* Slimbus Device Ids */
-#define AFE_SLIMBUS_DEVICE_1		0x0
-#define AFE_SLIMBUS_DEVICE_2		0x1
-#define AFE_PORT_MAX_AUDIO_CHAN_CNT	16
-
-struct afe_port_slimbus_cfg {
-	u16	slimbus_dev_id;		/* SLIMBUS Device id.*/
-
-	u16	slave_dev_pgd_la;	/* Slave ported generic device
-					* logical address.
-					*/
-	u16	slave_dev_intfdev_la;	/* Slave interface device logical
-					* address.
-					*/
-	u16	bit_width;		/**  bit width of the samples, 16, 24.*/
-
-	u16	data_format;		/** data format.*/
-
-	u16	num_channels;		/** Number of channels.*/
-
-	/** Slave port mapping for respective channels.*/
-	u16	slave_port_mapping[AFE_PORT_MAX_AUDIO_CHAN_CNT];
-
-	u16	reserved;
-} __packed;
-
-struct afe_port_rtproxy_cfg {
-	u16	bitwidth;	/* 16,24,32 */
-	u16	interleaved;    /* interleaved = 1 */
-				/* Noninterleaved = 0 */
-	u16	frame_sz;	/* 5ms buffers = 160bytes */
-	u16	jitter;		/* 10ms of jitter = 320 */
-	u16	lw_mark;	/* Low watermark in bytes for triggering event*/
-	u16	hw_mark;	/* High watermark bytes for triggering event*/
-	u16	rsvd;
-	int	num_ch;		/* 1 to 8 */
-} __packed;
-
 #define AFE_PORT_AUDIO_IF_CONFIG 0x000100d3
 
 union afe_port_config {
 	struct afe_port_pcm_cfg         pcm;
 	struct afe_port_mi2s_cfg        mi2s;
 	struct afe_port_hdmi_cfg        hdmi;
-	struct afe_port_slimbus_cfg	slimbus;
-	struct afe_port_rtproxy_cfg     rtproxy;
 } __attribute__((packed));
 
 struct afe_audioif_config_command {
@@ -371,55 +307,6 @@ struct afe_get_active_handles_rsp {
 				/* 3, audio tx */
 	u16	handle;
 } __attribute__ ((packed));
-
-#define AFE_SERVICE_CMD_MEMORY_MAP 0x000100DE
-struct afe_cmd_memory_map {
-	struct apr_hdr hdr;
-	u32 phy_addr;
-	u32 mem_sz;
-	u16 mem_id;
-	u16 rsvd;
-} __packed;
-
-#define AFE_SERVICE_CMD_MEMORY_UNMAP 0x000100DF
-struct afe_cmd_memory_unmap {
-	struct apr_hdr hdr;
-	u32 phy_addr;
-} __packed;
-
-#define AFE_SERVICE_CMD_REG_RTPORT 0x000100E0
-struct afe_cmd_reg_rtport {
-	struct apr_hdr hdr;
-	u16 port_id;
-	u16 rsvd;
-} __packed;
-
-#define AFE_SERVICE_CMD_UNREG_RTPORT 0x000100E1
-struct afe_cmd_unreg_rtport {
-	struct apr_hdr hdr;
-	u16 port_id;
-	u16 rsvd;
-} __packed;
-
-#define AFE_SERVICE_CMD_RTPORT_WR 0x000100E2
-struct afe_cmd_rtport_wr {
-	struct apr_hdr hdr;
-	u16 port_id;
-	u16 rsvd;
-	u32 buf_addr;
-	u32 bytes_avail;
-} __packed;
-
-#define AFE_SERVICE_CMD_RTPORT_RD 0x000100E3
-struct afe_cmd_rtport_rd {
-	struct apr_hdr hdr;
-	u16 port_id;
-	u16 rsvd;
-	u32 buf_addr;
-	u32 bytes_avail;
-} __packed;
-
-#define AFE_EVENT_RT_PROXY_PORT_STATUS 0x00010105
 
 #define ADM_MAX_COPPS 5
 
@@ -519,6 +406,8 @@ struct adm_cmd_memory_unmap_regions{
 #define DEFAULT_POPP_TOPOLOGY				0x00010be4
 #define VPM_TX_SM_ECNS_COPP_TOPOLOGY			0x00010F71
 #define VPM_TX_DM_FLUENCE_COPP_TOPOLOGY			0x00010F72
+#define HTC_STEREO_RECORD_TOPOLOGY			0x10000000
+#define HTC_COPP_TOPOLOGY				0x10000001
 
 #define ASM_MAX_EQ_BANDS 12
 
@@ -586,7 +475,6 @@ struct asm_pp_params_command {
 #define L_R_CHANNEL_GAIN_PARAM_ID	0x00010c00
 #define MUTE_CONFIG_PARAM_ID 0x00010c01
 #define SOFT_PAUSE_PARAM_ID 0x00010D6A
-#define SOFT_VOLUME_PARAM_ID 0x00010C29
 
 #define IIR_FILTER_ENABLE_PARAM_ID 0x00010c03
 #define IIR_FILTER_PREGAIN_PARAM_ID 0x00010c04
@@ -803,11 +691,6 @@ struct asm_sbr_ps {
 	u32 enable;
 };
 
-struct asm_dual_mono {
-	u16 sce_left;
-	u16 sce_right;
-};
-
 struct asm_encode_cfg_blk {
 	u32 frames_per_buf;
 	u32 format_id;
@@ -862,7 +745,6 @@ struct asm_stream_cmd_open_read {
 #define G711_ALAW_FS 0x00010BF7
 #define G711_MLAW_FS 0x00010BF8
 #define G711_PCM_FS  0x00010BF9
-#define MPEG4_MULTI_AAC 0x00010D86
 
 #define ASM_ENCDEC_SBCRATE         0x00010C13
 #define ASM_ENCDEC_IMMDIATE_DECODE 0x00010C14
@@ -896,7 +778,6 @@ struct asm_stream_cmd_open_read_write {
 #define ASM_STREAM_CMD_GET_ENCDEC_PARAM                  0x00010C11
 #define ASM_ENCDEC_CFG_BLK_ID				 0x00010C2C
 #define ASM_ENABLE_SBR_PS				 0x00010C63
-#define ASM_CONFIGURE_DUAL_MONO			 0x00010C64
 struct asm_stream_cmd_encdec_cfg_blk{
 	struct apr_hdr              hdr;
 	u32                         param_id;
@@ -923,13 +804,6 @@ struct asm_stream_cmd_encdec_sbr{
 	u32            param_size;
 	struct asm_sbr_ps sbr_ps;
 } __attribute__((packed));
-
-struct asm_stream_cmd_encdec_dualmono {
-	struct apr_hdr hdr;
-	u32            param_id;
-	u32            param_size;
-	struct asm_dual_mono channel_map;
-} __packed;
 
 #define ASM_STREAM _CMD_ADJUST_SAMPLES                   0x00010C0A
 struct asm_stream_cmd_adjust_samples{
@@ -1029,7 +903,7 @@ struct asm_stream_cmd_read{
 } __attribute__((packed));
 
 #define ASM_DATA_CMD_MEDIA_FORMAT_UPDATE                 0x00010BDC
-#define ASM_DATA_EVENT_ENC_SR_CM_NOTIFY                  0x00010BDE
+#define ASM_DATA_EVENT_MEDIA_FORMAT_UPDATE               0x00010BDE
 struct asm_stream_media_format_update{
 	struct apr_hdr hdr;
 	u32            format;
@@ -1090,13 +964,6 @@ struct asm_data_event_read_done{
 	u32            id;
 } __attribute__((packed));
 
-#define ASM_DATA_EVENT_SR_CM_CHANGE_NOTIFY               0x00010C65
-struct asm_data_event_sr_cm_change_notify {
-	u32            sample_rate;
-	u16	           no_of_channels;
-	u16            reserved;
-	u8             channel_map[8];
-} __packed;
 
 /* service level events */
 

@@ -18,8 +18,8 @@
 
 #ifndef _MSM_PCM_H
 #define _MSM_PCM_H
-#include <mach/qdsp6v2_1x/apr_audio.h>
-#include <mach/qdsp6v2_1x/q6asm.h>
+#include <mach/qdsp6v3/apr_audio.h>
+#include <mach/qdsp6v3/q6asm.h>
 
 #define MAX_PLAYBACK_SESSIONS	2
 #define MAX_CAPTURE_SESSIONS	1

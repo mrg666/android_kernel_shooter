@@ -22,9 +22,9 @@
 #include <linux/gfp.h>
 #include <linux/uaccess.h>
 #include <linux/slab.h>
-#include <mach/qdsp6v2_1x/snddev_icodec.h>
-#include <mach/qdsp6v2_1x/snddev_ecodec.h>
-#include <mach/qdsp6v2_1x/audio_dev_ctl.h>
+#include <mach/qdsp6v3/snddev_icodec.h>
+#include <mach/qdsp6v3/snddev_ecodec.h>
+#include <mach/qdsp6v3/audio_dev_ctl.h>
 #include <mach/htc_acoustic_8x60.h>
 #if defined(CONFIG_HTC_HEADSET_MGR)
 #include <mach/htc_headset_mgr.h>
@@ -33,7 +33,7 @@
 #include <mach/msm_smd.h>
 #include <mach/msm_rpcrouter.h>
 #include "smd_private.h"
-#include <mach/qdsp6v2_1x/q6afe.h>
+#include <mach/qdsp6v3/q6afe.h>
 
 #define ACOUSTIC_IOCTL_MAGIC 'p'
 #define ACOUSTIC_ADIE_SIZE	_IOW(ACOUSTIC_IOCTL_MAGIC, 15, size_t)

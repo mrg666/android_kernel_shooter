@@ -33,7 +33,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/delay.h>
 #include <linux/android_pmem.h>
-#include <mach/qdsp6v2_1x/audio_dev_ctl.h>
+#include <mach/qdsp6v3/audio_dev_ctl.h>
 
 #include "msm8x60-pcm.h"
 

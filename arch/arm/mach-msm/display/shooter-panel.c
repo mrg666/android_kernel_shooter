@@ -448,7 +448,7 @@ static unsigned char shooter_shrink_pwm(int val)
 	else
 		last_br_2d = val;
 
-	PR_DISP_DEBUG("brightness orig=%d, transformed=%d\n", val, shrink_br);
+	//PR_DISP_DEBUG("brightness orig=%d, transformed=%d\n", val, shrink_br);
 
 	return shrink_br;
 }

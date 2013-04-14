@@ -203,7 +203,7 @@ qup_i2c_interrupt(int irq, void *devid)
 	}
 
 	if (status & I2C_STATUS_ERROR_MASK) {
-		dev_err(dev->dev, "QUP: I2C status flags :0x%x, irq:%d\n",
+		dev_info(dev->dev, "QUP: I2C status flags :0x%x, irq:%d\n",
 			status, irq);
 		err = status;
 		/* Clear Error interrupt if it's a level triggered interrupt*/
@@ -216,7 +216,7 @@ qup_i2c_interrupt(int irq, void *devid)
 	}
 
 	if (status1 & 0x7F) {
-		dev_err(dev->dev, "QUP: QUP status flags :0x%x\n", status1);
+		dev_info(dev->dev, "QUP: QUP status flags :0x%x\n", status1);
 		err = -status1;
 		/* Clear Error interrupt if it's a level triggered interrupt*/
 		if (dev->num_irqs == 1) {
@@ -802,7 +802,7 @@ qup_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 		disable_irq(dev->err_irq);
 		ret = QUP_i2c_recover_bus_busy(dev);
 		if (ret)
-			dev_err(dev->dev, "[QUP I2C Err] QUP_i2c_recover_bus_busy: ret = %d\n", ret);
+			dev_info(dev->dev, "[QUP I2C] QUP_i2c_recover_bus_busy: ret = %d\n", ret);
 		enable_irq(dev->err_irq);
 
 		test_recovery[dev->adapter.nr] = 0;
@@ -860,7 +860,7 @@ qup_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 	writel_relaxed(1, dev->base + QUP_SW_RESET);
 	ret = qup_i2c_poll_state(dev, QUP_RESET_STATE, false);
 	if (ret) {
-		dev_err(dev->dev, "QUP Busy:Trying to recover\n");
+		dev_info(dev->dev, "QUP Busy:Trying to recover\n");
 		goto out_err;
 	}
 
@@ -996,10 +996,10 @@ qup_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 				uint32_t op_flgs = readl_relaxed(dev->base +
 							QUP_OPERATIONAL);
 
-				dev_err(dev->dev, "[QUP I2C Err] Transaction timed out\n");
-				dev_err(dev->dev, "[QUP I2C Err] I2C Status: %x\n", istatus);
-				dev_err(dev->dev, "[QUP I2C Err] QUP Status: %x\n", qstatus);
-				dev_err(dev->dev, "[QUP I2C Err] OP Flags: %x\n", op_flgs);
+				dev_info(dev->dev, "[QUP I2C Err] Transaction timed out\n");
+				dev_info(dev->dev, "[QUP I2C Err] I2C Status: %x\n", istatus);
+				dev_info(dev->dev, "[QUP I2C Err] QUP Status: %x\n", qstatus);
+				dev_info(dev->dev, "[QUP I2C Err] OP Flags: %x\n", op_flgs);
 
 				disable_irq(dev->err_irq);
 				ret = QUP_i2c_recover_bus_busy(dev);
@@ -1018,12 +1018,12 @@ qup_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 			if (dev->err) {
 				if (dev->err > 0 &&
 					dev->err & QUP_I2C_NACK_FLAG)
-					dev_err(dev->dev,
-					"I2C slave addr:0x%x not connected\n",
+					dev_info(dev->dev,
+					"I2C slave addr: 0x%x not connected\n",
 					dev->msg->addr);
 				else if (dev->err < 0) {
-					dev_err(dev->dev,
-					"QUP data xfer error %d\n", dev->err);
+					dev_info(dev->dev,
+					"QUP data xfer code = %d\n", dev->err);
 					ret = dev->err;
 					goto out_err;
 				}
@@ -1127,6 +1127,7 @@ qup_i2c_probe(struct platform_device *pdev)
 
 	gsbi_mem = NULL;
 	dev_dbg(&pdev->dev, "qup_i2c_probe\n");
+	dev_info(&pdev->dev, "%s\n", __func__);
 
 	pdata = pdev->dev.platform_data;
 	if (!pdata) {

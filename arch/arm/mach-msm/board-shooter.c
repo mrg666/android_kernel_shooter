@@ -4870,39 +4870,12 @@ static int isl29028_power(int pwr_device, uint8_t enable)
 {
 	return 0;
 }
-/*
-thh_value = b_value + (((c_value - b_value) * a_value) / x_value)!
-
-thl_value = b_value + ((c_value - b_value) / x_value)!
-
-A: 3
-
-X: 14
-*/
-
-
-static int isl29028_threoshold(int b, int c, int a, int x, int *thl_value, int *thh_value)
-{
-	int a_defult = 3, x_defult = 14;
-
-	if (a == 0)
-		a = a_defult;
-
-	if (x == 0)
-		x = x_defult;
-
-	*thh_value = b + (((c - b) * a) / x);
-	*thl_value = b + ((c - b) / x);
-	return 0;
-}
-
 
 static struct isl29028_platform_data isl29028_pdata = {
 	.intr = PM8058_GPIO_PM_TO_SYS(shooter_PLS_INT),
 	.levels = {17, 79, 258, 588, 918, 1250, 1962, 2673, 3384, 4095},
 	.golden_adc = 0x4E2,
 	.power = isl29028_power,
-	.calibrate_func = isl29028_threoshold,
 	.lt = 0x15,
 	.ht = 0x16,
 };
@@ -4925,7 +4898,6 @@ static struct isl29029_platform_data isl29029_pdata = {
 	.levels = {17, 79, 258, 588, 918, 1250, 1962, 2673, 3384, 4095},
 	.golden_adc = 0x4E2,
 	.power = isl29029_power,
-	.calibrate_func = isl29028_threoshold,
 	.lt = 0x15,
 	.ht = 0x16,
 };

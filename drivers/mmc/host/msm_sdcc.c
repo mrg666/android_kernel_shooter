@@ -2177,7 +2177,7 @@ msmsdcc_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	 * Timer expires in 10 secs.
 	 */
 
-	if (is_sd_platform(host->plat))
+	if ((is_sd_platform(host->plat)) || (is_wimax_platform(host->plat)))
 		mod_timer(&host->req_tout_timer,
 			(jiffies + msecs_to_jiffies(5000)));
 	else
@@ -4273,6 +4273,11 @@ static void msmsdcc_req_tout_timer_hdlr(unsigned long data)
 	struct mmc_request *mrq;
 	unsigned long flags;
 
+#ifdef CONFIG_WIMAX
+	if (is_wimax_platform(host->plat) && mmc_wimax_get_status())
+		pr_info("[WIMAX] msmsdcc_req_tout_timer_hdlr+\n");
+#endif
+
 	spin_lock_irqsave(&host->lock, flags);
 	if (host->dummy_52_sent) {
 		pr_info("[K] %s: %s: dummy CMD52 timeout\n",
@@ -4323,6 +4328,11 @@ static void msmsdcc_req_tout_timer_hdlr(unsigned long data)
 		}
 	}
 	spin_unlock_irqrestore(&host->lock, flags);
+
+#ifdef CONFIG_WIMAX
+	if (is_wimax_platform(host->plat) && mmc_wimax_get_status())
+		pr_info("[WIMAX] msmsdcc_req_tout_timer_hdlr-\n");
+#endif
 }
 
 static int
@@ -5121,7 +5131,6 @@ static int msmsdcc_suspend(struct device *dev)
 #endif /* CONFIG_WIMAX */
 /* HTC_CSP_END */
 
-			
 
 
 		if (!rc) {

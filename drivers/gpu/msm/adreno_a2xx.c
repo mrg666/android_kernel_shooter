@@ -1499,6 +1499,15 @@ static void a2xx_drawctxt_save(struct adreno_device *adreno_dev,
 
 		adreno_ringbuffer_issuecmds(device, KGSL_CMD_FLAGS_PMODE,
 					    &cmd[0], 11);
+	} else if (adreno_is_a220(adreno_dev) || adreno_is_a20x(adreno_dev)) {
+		unsigned int *cmds = &cmd[0];
+
+		*cmds++ = cp_type3_packet(CP_SET_SHADER_BASES, 1);
+		*cmds++ = adreno_encode_istore_size(adreno_dev)
+			| adreno_dev->pix_shader_start;
+
+		adreno_ringbuffer_issuecmds(device, KGSL_CMD_FLAGS_PMODE,
+					 &cmd[0], 2);
 	}
 }
 

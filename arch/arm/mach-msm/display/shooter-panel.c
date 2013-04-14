@@ -45,7 +45,7 @@ enum MODE_3D {
 	BARRIER_END
 };
 
-static atomic_t g_3D_mode = ATOMIC_INIT(BARRIER_OFF);
+atomic_t g_3D_mode = ATOMIC_INIT(BARRIER_OFF);
 static struct pwm_device *pwm_3d = NULL;
 struct kobject *kobj, *uevent_kobj;
 struct kset *uevent_kset;

@@ -13,6 +13,7 @@
 #include <linux/interrupt.h>
 #include <mach/msm_iomap.h>
 #include <mach/msm_bus.h>
+#include <mach/socinfo.h>
 
 #include "kgsl.h"
 #include "kgsl_pwrscale.h"
@@ -24,7 +25,6 @@
 #define KGSL_PWRFLAGS_AXI_ON   2
 #define KGSL_PWRFLAGS_IRQ_ON   3
 
-#define GPU_SWFI_LATENCY	3
 #define UPDATE_BUSY_VAL		1000000
 #define UPDATE_BUSY		50
 
@@ -755,9 +755,8 @@ _sleep(struct kgsl_device *device)
 		_sleep_accounting(device);
 		kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_OFF, KGSL_STATE_SLEEP);
 		kgsl_pwrctrl_set_state(device, KGSL_STATE_SLEEP);
-		wake_unlock(&device->idle_wakelock);
-		pm_qos_update_request(&device->pm_qos_req_dma,
-					PM_QOS_DEFAULT_VALUE);
+		if (device->idle_wakelock.name)
+			wake_unlock(&device->idle_wakelock);
 		break;
 	case KGSL_STATE_SLEEP:
 	case KGSL_STATE_SLUMBER:
@@ -785,15 +784,13 @@ _slumber(struct kgsl_device *device)
 	case KGSL_STATE_SLEEP:
 		del_timer_sync(&device->idle_timer);
 		kgsl_pwrctrl_pwrlevel_change(device, KGSL_PWRLEVEL_NOMINAL);
-		device->pwrctrl.restore_slumber = true;
 		device->ftbl->suspend_context(device);
 		device->ftbl->stop(device);
+		device->pwrctrl.restore_slumber = true;
 		_sleep_accounting(device);
 		kgsl_pwrctrl_set_state(device, KGSL_STATE_SLUMBER);
 		if (device->idle_wakelock.name)
 			wake_unlock(&device->idle_wakelock);
-		pm_qos_update_request(&device->pm_qos_req_dma,
-						PM_QOS_DEFAULT_VALUE);
 		break;
 	case KGSL_STATE_SLUMBER:
 		break;
@@ -862,10 +859,9 @@ void kgsl_pwrctrl_wake(struct kgsl_device *device)
 		/* Re-enable HW access */
 		mod_timer(&device->idle_timer,
 				jiffies + device->pwrctrl.interval_timeout);
-		wake_lock(&device->idle_wakelock);
-		if (device->pwrctrl.restore_slumber == false)
-			pm_qos_update_request(&device->pm_qos_req_dma,
-						GPU_SWFI_LATENCY);
+
+		if (device->idle_wakelock.name)
+			wake_lock(&device->idle_wakelock);
 	case KGSL_STATE_ACTIVE:
 		break;
 	default:

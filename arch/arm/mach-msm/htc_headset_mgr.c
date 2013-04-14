@@ -887,6 +887,7 @@ static void insert_detect_work_func(struct work_struct *work)
 
 int hs_notify_plug_event(int insert)
 {
+	int ret = 0;
 	HS_DBG("Headset status %d", insert);
 
 	mutex_lock(&hi->mutex_lock);
@@ -894,8 +895,12 @@ int hs_notify_plug_event(int insert)
 	mutex_unlock(&hi->mutex_lock);
 
 	cancel_delayed_work_sync(&mic_detect_work);
-	cancel_delayed_work_sync(&insert_detect_work);
-	cancel_delayed_work_sync(&remove_detect_work);
+	ret = cancel_delayed_work_sync(&insert_detect_work);
+	if (ret && hs_mgr_notifier.key_int_enable)
+		hs_mgr_notifier.key_int_enable(1);
+	ret = cancel_delayed_work_sync(&remove_detect_work);
+	if (ret && hs_mgr_notifier.key_int_enable)
+		hs_mgr_notifier.key_int_enable(0);
 
 	if (hi->is_ext_insert)
 		queue_delayed_work(detect_wq, &insert_detect_work,

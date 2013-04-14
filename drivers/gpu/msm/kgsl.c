@@ -25,6 +25,7 @@
 #include <linux/ashmem.h>
 #include <linux/major.h>
 #include <linux/ion.h>
+#include <mach/socinfo.h>
 
 #include "kgsl.h"
 #include "kgsl_debugfs.h"
@@ -418,6 +419,8 @@ static int kgsl_suspend_device(struct kgsl_device *device, pm_message_t state)
 			device->ftbl->suspend_context(device);
 			device->ftbl->stop(device);
 			kgsl_pwrctrl_set_state(device, KGSL_STATE_SUSPEND);
+			if (device->idle_wakelock.name)
+				wake_unlock(&device->idle_wakelock);
 			break;
 		case KGSL_STATE_SLUMBER:
 			INIT_COMPLETION(device->hwaccess_gate);
@@ -526,10 +529,10 @@ void kgsl_late_resume_driver(struct early_suspend *h)
 					struct kgsl_device, display_off);
 	KGSL_PWR_WARN(device, "late resume start\n");
 	mutex_lock(&device->mutex);
-	device->pwrctrl.restore_slumber = 0;
 	if (device->pwrscale.policy == NULL)
 		kgsl_pwrctrl_pwrlevel_change(device, KGSL_PWRLEVEL_TURBO);
 	kgsl_pwrctrl_wake(device);
+	device->pwrctrl.restore_slumber = 0;
 	mutex_unlock(&device->mutex);
 	kgsl_check_idle(device);
 	KGSL_PWR_WARN(device, "late resume end\n");
@@ -2117,8 +2120,8 @@ void kgsl_unregister_device(struct kgsl_device *device)
 	kgsl_cffdump_close(device->id);
 	kgsl_pwrctrl_uninit_sysfs(device);
 
-	wake_lock_destroy(&device->idle_wakelock);
-	pm_qos_remove_request(&device->pm_qos_req_dma);
+	if (cpu_is_msm8x60())
+		wake_lock_destroy(&device->idle_wakelock);
 
 	idr_destroy(&device->context_idr);
 
@@ -2209,9 +2212,9 @@ kgsl_register_device(struct kgsl_device *device)
 	if (ret != 0)
 		goto err_close_mmu;
 
-	wake_lock_init(&device->idle_wakelock, WAKE_LOCK_IDLE, device->name);
-	pm_qos_add_request(&device->pm_qos_req_dma, PM_QOS_CPU_DMA_LATENCY,
-				PM_QOS_DEFAULT_VALUE);
+	if (cpu_is_msm8x60())
+		wake_lock_init(&device->idle_wakelock,
+					WAKE_LOCK_IDLE, device->name);
 
 	idr_init(&device->context_idr);
 

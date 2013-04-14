@@ -449,7 +449,7 @@ acoustic_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			rc = -EFAULT;
 			break;
 		}
-		E("update AIC3254 ID : (%d, %d)\n",
+		D("update AIC3254 ID : (%d, %d)\n",
 			cur_aic3254_info.dev_id,
 			cur_aic3254_info.path_id);
 

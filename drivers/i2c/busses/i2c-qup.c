@@ -1004,7 +1004,7 @@ qup_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 				disable_irq(dev->err_irq);
 				ret = QUP_i2c_recover_bus_busy(dev);
 				if (ret)
-					dev_err(dev->dev, "[QUP I2C Err] QUP_i2c_recover_bus_busy: ret = %d\n", ret);
+					dev_info(dev->dev, "[QUP I2C] QUP_i2c_recover_bus_busy: ret = %d\n", ret);
 				enable_irq(dev->err_irq);
 
 				writel_relaxed(1, dev->base + QUP_SW_RESET);

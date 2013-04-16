@@ -17,7 +17,6 @@
  *  02111-1307, USA.
  *
  *****************************************************************************/
-#include <linux/module.h>
 #include <linux/poll.h>
 #include <linux/miscdevice.h>
 #include <linux/hid.h>

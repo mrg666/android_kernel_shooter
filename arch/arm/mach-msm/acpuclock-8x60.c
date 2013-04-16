@@ -812,20 +812,8 @@ int processor_name_read_proc(char *page, char **start, off_t off,
 			   int count, int *eof, void *data)
 {
 	char *p = page;
-	uint32_t pte_efuse, speed_bin;
 
-	pte_efuse = readl_relaxed(QFPROM_PTE_EFUSE_ADDR);
-
-	speed_bin = pte_efuse & 0xF;
-	if (speed_bin == 0xF)
-		speed_bin = (pte_efuse >> 4) & 0xF;
-
-	if (speed_bin == 0x2)
-		p += sprintf(p, "1.7 GHz dual core");
-	else if (speed_bin == 0x1)
-		p += sprintf(p, "1.5 GHz dual core");
-	else
-		p += sprintf(p, "1.5 GHz dual core");
+	p += sprintf(p, "Qualcomm Snapdragon S3 MSM8660 2x 1.7GHz");
 
 	return p - page;
 }

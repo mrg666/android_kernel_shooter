@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Linux/arm 3.0.73 Kernel Configuration
+# Linux/arm 3.0.74 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -480,6 +480,7 @@ CONFIG_FOOTPRINT_IRQ=y
 CONFIG_HTC_BATT_ALARM=y
 # CONFIG_REMOVE_EBI1_FIXED_CLK is not set
 # CONFIG_HTC_ACCESSORY_ONEWIRE is not set
+CONFIG_FORCE_FAST_CHARGE=y
 
 #
 # System MMU

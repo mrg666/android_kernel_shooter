@@ -1,4 +1,4 @@
-
+#
 # Video configuration
 #
 
@@ -2381,10 +2381,6 @@ config FB_PUV3_UNIGFX
 	help
 	  Choose this option if you want to use the Unigfx device as a
 	  framebuffer device. Without the support of PCI & AGP.
-
-if ARCH_MSM8X60
-	source "drivers/video/msm_8x60/Kconfig"
-endif
 
 if (ARCH_MSM8960 || ARCH_MSM7X27A || ARCH_MSM8X60)
 	source "drivers/video/msm/Kconfig"

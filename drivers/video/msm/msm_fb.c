@@ -1450,7 +1450,8 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 	var->xres = panel_info->xres;
 	var->yres = panel_info->yres;
 	var->xres_virtual = ALIGN(panel_info->xres, 32);
-	var->yres_virtual = panel_info->yres * mfd->fb_page;
+	var->yres_virtual = panel_info->yres * mfd->fb_page +
+		((PAGE_SIZE - remainder)/fix->line_length) * mfd->fb_page;
 	var->bits_per_pixel = bpp * 8;	/* FrameBuffer color depth */
 		/*
 		 * id field for fb app
@@ -1916,7 +1917,6 @@ static int msm_fb_pan_display(struct fb_var_screeninfo *var,
 static int msm_fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 {
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
-	int hole_offset;
 
 	if (var->rotate != FB_ROTATE_UR)
 		return -EINVAL;
@@ -2011,20 +2011,7 @@ static int msm_fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	if (var->xoffset > (var->xres_virtual - var->xres))
 		return -EINVAL;
 
-	if (!mfd->panel_info.mode2_yres)
-		hole_offset = (mfd->fbi->fix.line_length *
-			mfd->panel_info.yres) % PAGE_SIZE;
-	else
-		hole_offset = (mfd->fbi->fix.line_length *
-			mfd->panel_info.mode2_yres) % PAGE_SIZE;
-
-	if (!hole_offset) {
-		hole_offset = PAGE_SIZE - hole_offset;
-		hole_offset = hole_offset/mfd->fbi->fix.line_length;
-	}
-
-	if (var->yoffset > (var->yres_virtual - var->yres + (hole_offset *
-							(mfd->fb_page - 1))))
+	if (var->yoffset > (var->yres_virtual - var->yres))
 		return -EINVAL;
 
 	return 0;

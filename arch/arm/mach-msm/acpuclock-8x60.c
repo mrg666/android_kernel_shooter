@@ -813,7 +813,7 @@ int processor_name_read_proc(char *page, char **start, off_t off,
 {
 	char *p = page;
 
-	p += sprintf(p, "Qualcomm Snapdragon S3 MSM8660 2x 1.7GHz");
+	p += sprintf(p, "Qualcomm Snapdragon S3 MSM8660");
 
 	return p - page;
 }

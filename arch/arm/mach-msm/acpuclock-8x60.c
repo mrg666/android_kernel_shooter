@@ -177,11 +177,12 @@ struct clkctl_acpu_speed {
 		.num_paths = 1, \
 	}
 static struct msm_bus_paths bw_level_tbl[] = {
-	[0] =  BW_MBPS(824), /* At least 103 MHz on bus. */
-	[1] = BW_MBPS(1336), /* At least 167 MHz on bus. */
-	[2] = BW_MBPS(2008), /* At least 251 MHz on bus. */
-	[3] = BW_MBPS(2480), /* At least 310 MHz on bus. */
-	[4] = BW_MBPS(3200), /* At least 360 MHz on bus. */
+	[0] = BW_MBPS(1064), /* >= 133 MHz bus */
+	[1] = BW_MBPS(1600), /* >= 200 MHz bus */
+	[2] = BW_MBPS(2136), /* >= 267 MHz bus */
+	[3] = BW_MBPS(2664), /* >= 333 MHz bus */
+	[4] = BW_MBPS(3200), /* >= 400 MHz bus */
+	[5] = BW_MBPS(3736), /* >= 467 MHz bus */
 };
 
 static struct msm_bus_scale_pdata bus_client_pdata = {
@@ -206,7 +207,9 @@ static struct clkctl_l2_speed l2_freq_tbl_v2[] = {
 	[8]  = {1188000,  1, 0x16, 1200000, 1200000, 3},
 	[9]  = {1296000,  1, 0x18, 1200000, 1225000, 3},
 	[10] = {1404000,  1, 0x1A, 1200000, 1250000, 4},
-	[11] = {1512000,  1, 0x1C, 1225000, 1275000, 4},
+	[11] = {1512000,  1, 0x1C, 1200000, 1250000, 4},
+	[12] = {1620000,  1, 0x1E, 1225000, 1275000, 5},
+	[13] = {1728000,  1, 0x20, 1225000, 1275000, 5},
 };
 
 #define L2(x) (&l2_freq_tbl_v2[(x)])
@@ -227,8 +230,8 @@ static struct clkctl_acpu_speed acpu_freq_tbl_8x60[] = {
   { {1, 1}, 1296000,  ACPU_SCPLL, 0, 0, 1, 0x18, L2(9),  1100000, 0x03006000},
   { {1, 1}, 1404000,  ACPU_SCPLL, 0, 0, 1, 0x1A, L2(10), 1150000, 0x03006000},
   { {1, 1}, 1512000,  ACPU_SCPLL, 0, 0, 1, 0x1C, L2(11), 1200000, 0x03006000},
-  { {1, 1}, 1620000,  ACPU_SCPLL, 0, 0, 1, 0x1E, L2(11), 1250000, 0x03006000},
-  { {1, 1}, 1728000,  ACPU_SCPLL, 0, 0, 1, 0x20, L2(11), 1300000, 0x03006000},
+  { {1, 1}, 1620000,  ACPU_SCPLL, 0, 0, 1, 0x1E, L2(12), 1250000, 0x03006000},
+  { {1, 1}, 1728000,  ACPU_SCPLL, 0, 0, 1, 0x20, L2(13), 1300000, 0x03006000},
   { {0, 0}, 0 },
 };
 

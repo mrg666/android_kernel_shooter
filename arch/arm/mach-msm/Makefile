@@ -1,7 +1,6 @@
 obj-y += io.o dma.o memory.o timer.o
 obj-y += clock.o clock-voter.o clock-dummy.o
 obj-y += subsystem_map.o
-obj-$(CONFIG_CPU_FREQ_MSM) += cpufreq.o
 obj-$(CONFIG_DEBUG_FS) += nohlt.o clock-debug.o
 obj-$(CONFIG_KEXEC) += msm_kexec.o
 
@@ -603,3 +602,4 @@ obj-$(CONFIG_MFD_MAX8957) += max8957_gpio.o
 obj-y += display/
 obj-$(CONFIG_MACH_PRIMOTD) += board-primotd-gps.o
 obj-$(CONFIG_HTC_ACCESSORY_ONEWIRE) += htc_onewire.o
+obj-$(CONFIG_CPU_FREQ_MSM) += cpufreq.o

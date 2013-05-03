@@ -249,11 +249,11 @@ void __iomem * __arm_ioremap_pfn_caller(unsigned long pfn,
 	return (void __iomem *) (offset + addr);
 }
 
-void __iomem *__arm_ioremap_caller(unsigned long phys_addr, size_t size,
+void __iomem *__arm_ioremap_caller(phys_addr_t phys_addr, size_t size,
 	unsigned int mtype, void *caller)
 {
-	unsigned long last_addr;
- 	unsigned long offset = phys_addr & ~PAGE_MASK;
+	phys_addr_t last_addr;
+ 	phys_addr_t offset = phys_addr & ~PAGE_MASK;
  	unsigned long pfn = __phys_to_pfn(phys_addr);
 
  	/*
@@ -286,7 +286,7 @@ __arm_ioremap_pfn(unsigned long pfn, unsigned long offset, size_t size,
 EXPORT_SYMBOL(__arm_ioremap_pfn);
 
 void __iomem *
-__arm_ioremap(unsigned long phys_addr, size_t size, unsigned int mtype)
+__arm_ioremap(phys_addr_t phys_addr, size_t size, unsigned int mtype)
 {
 	return __arm_ioremap_caller(phys_addr, size, mtype,
 			__builtin_return_address(0));

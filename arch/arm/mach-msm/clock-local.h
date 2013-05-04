@@ -197,7 +197,6 @@ extern struct clk_freq_tbl rcg_dummy_freq;
 int rcg_clk_enable(struct clk *clk);
 void rcg_clk_disable(struct clk *clk);
 int rcg_clk_set_rate(struct clk *clk, unsigned long rate);
-unsigned long rcg_clk_get_rate(struct clk *clk);
 int rcg_clk_list_rate(struct clk *clk, unsigned n);
 int rcg_clk_is_enabled(struct clk *clk);
 long rcg_clk_round_rate(struct clk *clk, unsigned long rate);
@@ -236,29 +235,14 @@ extern struct clk_ops clk_ops_cdiv;
 
 /**
  * struct fixed_clk - fixed rate clock (used for crystal oscillators)
- * @rate: output rate
- * @c: clk
+  * @c: clk
  */
 struct fixed_clk {
-	unsigned long rate;
 	struct clk c;
 };
 
-static inline struct fixed_clk *to_fixed_clk(struct clk *clk)
-{
-	return container_of(clk, struct fixed_clk, c);
-}
-
-static inline unsigned long fixed_clk_get_rate(struct clk *clk)
-{
-	struct fixed_clk *f = to_fixed_clk(clk);
-	return f->rate;
-}
-
-
 /**
  * struct pll_vote_clk - phase locked loop (HW voteable)
- * @rate: output rate
  * @en_reg: enable register
  * @en_mask: ORed with @en_reg to enable the clock
  * @status_reg: status register
@@ -266,8 +250,6 @@ static inline unsigned long fixed_clk_get_rate(struct clk *clk)
  * @c: clk
  */
 struct pll_vote_clk {
-	unsigned long rate;
-
 	void __iomem *const en_reg;
 	const u32 en_mask;
 
@@ -286,14 +268,11 @@ static inline struct pll_vote_clk *to_pll_vote_clk(struct clk *clk)
 
 /**
  * struct pll_clk - phase locked loop
- * @rate: output rate
  * @mode_reg: enable register
  * @parent: clock source
  * @c: clk
  */
 struct pll_clk {
-	unsigned long rate;
-
 	void __iomem *const mode_reg;
 
 	struct clk *parent;

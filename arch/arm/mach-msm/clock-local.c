@@ -523,27 +523,6 @@ int rcg_clk_set_rate(struct clk *c, unsigned long rate)
 	return _rcg_clk_set_rate(clk, nf);
 }
 
-/* Get the currently-set rate of a clock in Hz. */
-unsigned long rcg_clk_get_rate(struct clk *c)
-{
-	struct rcg_clk *clk = to_rcg_clk(c);
-	unsigned long flags;
-	unsigned ret = 0;
-
-	spin_lock_irqsave(&local_clock_reg_lock, flags);
-	ret = clk->current_freq->freq_hz;
-	spin_unlock_irqrestore(&local_clock_reg_lock, flags);
-
-	/*
-	 * Return 0 if the rate has never been set. Might not be correct,
-	 * but it's good enough.
-	 */
-	if (ret == FREQ_END)
-		ret = 0;
-
-	return ret;
-}
-
 /* Check if a clock is currently enabled. */
 int rcg_clk_is_enabled(struct clk *clk)
 {
@@ -657,12 +636,6 @@ static void pll_vote_clk_disable(struct clk *clk)
 	spin_unlock_irqrestore(&local_clock_reg_lock, flags);
 }
 
-static unsigned long pll_vote_clk_get_rate(struct clk *clk)
-{
-	struct pll_vote_clk *pll = to_pll_vote_clk(clk);
-	return pll->rate;
-}
-
 static struct clk *pll_vote_clk_get_parent(struct clk *clk)
 {
 	struct pll_vote_clk *pll = to_pll_vote_clk(clk);
@@ -680,7 +653,6 @@ struct clk_ops clk_ops_pll_vote = {
 	.disable = pll_vote_clk_disable,
 	.auto_off = pll_vote_clk_disable,
 	.is_enabled = pll_vote_clk_is_enabled,
-	.get_rate = pll_vote_clk_get_rate,
 	.get_parent = pll_vote_clk_get_parent,
 	.is_local = local_clk_is_local,
 };
@@ -737,12 +709,6 @@ static void pll_clk_disable(struct clk *clk)
 	spin_unlock_irqrestore(&local_clock_reg_lock, flags);
 }
 
-static unsigned long pll_clk_get_rate(struct clk *clk)
-{
-	struct pll_clk *pll = to_pll_clk(clk);
-	return pll->rate;
-}
-
 static struct clk *pll_clk_get_parent(struct clk *clk)
 {
 	struct pll_clk *pll = to_pll_clk(clk);
@@ -788,13 +754,11 @@ struct clk_ops clk_ops_pll = {
 	.enable = pll_clk_enable,
 	.disable = pll_clk_disable,
 	.auto_off = pll_clk_disable,
-	.get_rate = pll_clk_get_rate,
 	.get_parent = pll_clk_get_parent,
 	.is_local = local_clk_is_local,
 };
 
 struct clk_ops clk_ops_gnd = {
-	.get_rate = fixed_clk_get_rate,
 	.is_local = local_clk_is_local,
 };
 

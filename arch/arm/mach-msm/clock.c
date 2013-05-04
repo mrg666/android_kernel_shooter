@@ -339,8 +339,8 @@ void __init msm_clock_init(struct clock_init_data *data)
 	size_t num_clocks;
 
 	clk_init_data = data;
-	if (clk_init_data->init)
-		clk_init_data->init();
+	if (clk_init_data->pre_init)
+		clk_init_data->pre_init();
 
 	clock_tbl = data->table;
 	num_clocks = data->size;
@@ -348,7 +348,8 @@ void __init msm_clock_init(struct clock_init_data *data)
 	for (n = 0; n < num_clocks; n++) {
 		struct clk *clk = clock_tbl[n].clk;
 		struct clk *parent = clk_get_parent(clk);
-		clk_set_parent(clk, parent);
+		if (parent && list_empty(&clk->siblings))
+			list_add(&clk->siblings, &parent->children);
 		if (clk->ops->handoff && !(clk->flags & CLKFLAG_HANDOFF_RATE)) {
 			if (clk->ops->handoff(clk)) {
 				clk->flags |= CLKFLAG_HANDOFF_RATE;
@@ -358,6 +359,9 @@ void __init msm_clock_init(struct clock_init_data *data)
 	}
 
 	clkdev_add_table(clock_tbl, num_clocks);
+
+	if (clk_init_data->post_init)
+		clk_init_data->post_init();
 }
 
 /*

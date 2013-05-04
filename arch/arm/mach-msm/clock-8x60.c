@@ -503,7 +503,6 @@ static struct clk_ops clk_ops_branch = {
 	.reset = branch_clk_reset,
 	.is_local = local_clk_is_local,
 	.get_parent = branch_clk_get_parent,
-	.set_parent = branch_clk_set_parent,
 };
 
 static struct clk_ops clk_ops_reset = {
@@ -661,6 +660,8 @@ static struct branch_clk amp_p_clk = {
 	.b = {
 		.ctl_reg = AHB_EN_REG,
 		.en_mask = BIT(24),
+		.reset_reg = SW_RESET_CORE_REG,
+		.reset_mask = BIT(20),
 		.halt_reg = DBG_BUS_VEC_F_REG,
 		.halt_bit = 18,
 	},
@@ -1987,18 +1988,6 @@ static struct branch_clk rpm_msg_ram_p_clk = {
 /*
  * Multimedia Clocks
  */
-
-static struct branch_clk amp_clk = {
-	.b = {
-		.reset_reg = SW_RESET_CORE_REG,
-		.reset_mask = BIT(20),
-	},
-	.c = {
-		.dbg_name = "amp_clk",
-		.ops = &clk_ops_reset,
-		CLK_INIT(amp_clk.c),
-	},
-};
 
 #define F_CAM(f, s, d, m, n) \
 	{ \
@@ -3637,7 +3626,6 @@ static struct clk_lookup msm_clocks_8x60[] = {
 	CLK_LOOKUP("iface_clk",		pmic_arb1_p_clk.c,	NULL),
 	CLK_LOOKUP("core_clk",		pmic_ssbi2_clk.c,		NULL),
 	CLK_LOOKUP("mem_clk",		rpm_msg_ram_p_clk.c,	NULL),
-	CLK_LOOKUP("core_clk",		amp_clk.c,		NULL),
 	CLK_LOOKUP("cam_clk",		cam_clk.c,		NULL),
 #ifdef CONFIG_MSM_CAMERA_V4L2
 	CLK_LOOKUP("csi_clk",		csi0_clk.c,		"msm_csic.0"),
@@ -3799,8 +3787,10 @@ static void __init rmwreg(uint32_t val, void *reg, uint32_t mask)
 	writel_relaxed(regval, reg);
 }
 
-static void __init reg_init(void)
+static void __init msm8660_clock_pre_init(void)
 {
+	vote_vdd_level(&vdd_dig, VDD_DIG_HIGH);
+
 	/* Setup MM_PLL2 (PLL3), but turn it off. Rate set by set_rate_tv(). */
 	rmwreg(0, MM_PLL2_MODE_REG, BIT(0)); /* Disable output */
 	/* Set ref, bypass, assert reset, disable output, disable test mode */
@@ -3864,18 +3854,6 @@ static void __init reg_init(void)
 	/* Deassert all MM core resets. */
 	writel_relaxed(0, SW_RESET_CORE_REG);
 
-	/* Reset 3D core once more, with its clock enabled. This can
-	 * eventually be done as part of the GDFS footswitch driver. */
-	clk_set_rate(&gfx3d_clk.c, 27000000);
-	clk_enable(&gfx3d_clk.c);
-	writel_relaxed(BIT(12), SW_RESET_CORE_REG);
-	mb();
-	udelay(5);
-	writel_relaxed(0, SW_RESET_CORE_REG);
-	/* Make sure reset is de-asserted before clock is disabled. */
-	mb();
-	clk_disable(&gfx3d_clk.c);
-
 	/* Enable TSSC and PDM PXO sources. */
 	writel_relaxed(BIT(11), TSSC_CLK_CTL_REG);
 	writel_relaxed(BIT(15), PDM_CLK_NS_REG);
@@ -3884,8 +3862,7 @@ static void __init reg_init(void)
 	rmwreg(0x400001, MISC_CC2_REG, 0x424003);
 }
 
-/* Local clock driver initialization. */
-static void __init msm8660_clock_init(void)
+static void __init msm8660_clock_post_init(void)
 {
 	xo_pxo = msm_xo_get(MSM_XO_PXO, "clock-8x60");
 	if (IS_ERR(xo_pxo)) {
@@ -3898,14 +3875,18 @@ static void __init msm8660_clock_init(void)
 		BUG();
 	}
 
-	vote_vdd_level(&vdd_dig, VDD_DIG_HIGH);
 	/* Copy gfx2d's frequency table because it's modified by both clocks */
 	gfx2d1_clk.freq_tbl = kmemdup(clk_tbl_gfx2d,
 			sizeof(struct clk_freq_tbl) * ARRAY_SIZE(clk_tbl_gfx2d),
 			GFP_KERNEL);
 
-	/* Initialize clock registers. */
-	reg_init();
+	/* Reset 3D core while clocked to ensure it resets completely. */
+	clk_set_rate(&gfx3d_clk.c, 27000000);
+	clk_enable(&gfx3d_clk.c);
+	clk_reset(&gfx3d_clk.c, CLK_RESET_ASSERT);
+	udelay(5);
+	clk_reset(&gfx3d_clk.c, CLK_RESET_DEASSERT);
+	clk_disable(&gfx3d_clk.c);
 
 	/* Initialize rates for clocks that only support one. */
 	clk_set_rate(&pdm_clk.c, 27000000);
@@ -3947,7 +3928,8 @@ static int __init msm8660_clock_late_init(void)
 struct clock_init_data msm8x60_clock_init_data __initdata = {
 	.table = msm_clocks_8x60,
 	.size = ARRAY_SIZE(msm_clocks_8x60),
-	.init = msm8660_clock_init,
+	.pre_init = msm8660_clock_pre_init,
+	.post_init = msm8660_clock_post_init,
 	.late_init = msm8660_clock_late_init,
 };
 /*added by htc for clock debugging*/

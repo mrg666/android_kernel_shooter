@@ -3552,6 +3552,7 @@ static struct platform_device *shooter_devices[] __initdata = {
 	&ram_console_device,
 	&msm_device_smd,
 	&msm_device_uart_dm12,
+	&msm_pil_q6v3,
 #ifdef CONFIG_I2C_QUP
 	&msm_gsbi4_qup_i2c_device,
 	&msm_gsbi5_qup_i2c_device,

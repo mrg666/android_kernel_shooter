@@ -523,22 +523,6 @@ int rcg_clk_set_rate(struct clk *c, unsigned long rate)
 	return _rcg_clk_set_rate(clk, nf);
 }
 
-/* Set a clock to a rate greater than some minimum. */
-int rcg_clk_set_min_rate(struct clk *c, unsigned long rate)
-{
-	struct rcg_clk *clk = to_rcg_clk(c);
-	struct clk_freq_tbl *nf;
-
-	for (nf = clk->freq_tbl; nf->freq_hz != FREQ_END
-			&& nf->freq_hz < rate; nf++)
-		;
-
-	if (nf->freq_hz == FREQ_END)
-		return -EINVAL;
-
-	return _rcg_clk_set_rate(clk, nf);
-}
-
 /* Get the currently-set rate of a clock in Hz. */
 unsigned long rcg_clk_get_rate(struct clk *c)
 {
@@ -910,6 +894,11 @@ int branch_reset(struct branch *clk, enum clk_reset_action action)
 int branch_clk_reset(struct clk *clk, enum clk_reset_action action)
 {
 	return branch_reset(&to_branch_clk(clk)->b, action);
+}
+
+int rcg_clk_reset(struct clk *clk, enum clk_reset_action action)
+{
+	return branch_reset(&to_rcg_clk(clk)->b, action);
 }
 
 static int cdiv_clk_enable(struct clk *c)

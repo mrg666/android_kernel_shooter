@@ -167,3 +167,4 @@ static int __init otg_wakelock_init(void)
 }
 
 late_initcall(otg_wakelock_init);
+

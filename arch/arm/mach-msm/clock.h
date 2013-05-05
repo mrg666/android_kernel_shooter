@@ -21,6 +21,7 @@
 #include <linux/list.h>
 #include <linux/clkdev.h>
 #include <linux/spinlock.h>
+#include <linux/mutex.h>
 
 #include <mach/clk.h>
 
@@ -64,8 +65,10 @@ struct clk_vdd_class {
 	}
 
 struct clk_ops {
+	int (*prepare)(struct clk *clk);
 	int (*enable)(struct clk *clk);
 	void (*disable)(struct clk *clk);
+	void (*unprepare)(struct clk *clk);
 	void (*auto_off)(struct clk *clk);
 	int (*handoff)(struct clk *clk);
 	int (*reset)(struct clk *clk, enum clk_reset_action action);
@@ -83,11 +86,14 @@ struct clk_ops {
 
 /**
  * struct clk
+ * @prepare_count: prepare refcount
+ * @prepare_lock: protects clk_prepare()/clk_unprepare() path and @prepare_count
  * @count: enable refcount
  * @lock: protects clk_enable()/clk_disable() path and @count
  * @depends: non-direct parent of clock to enable when this clock is enabled
  * @vdd_class: voltage scaling requirement class
  * @fmax: maximum frequency in Hz supported at each voltage level
+ * @warned: true if the clock has warned of incorrect usage, false otherwise
  */
 struct clk {
 	uint32_t flags;
@@ -102,12 +108,16 @@ struct clk {
 	struct list_head siblings;
 	struct list_head enable_list;	/*added by htc for clock debugging*/
 
+	bool warned;
 	unsigned count;
 	spinlock_t lock;
+	unsigned prepare_count;
+	struct mutex prepare_lock;
 };
 
 #define CLK_INIT(name) \
 	.lock = __SPIN_LOCK_UNLOCKED((name).lock), \
+	.prepare_lock = __MUTEX_INITIALIZER((name).prepare_lock), \
 	.children = LIST_HEAD_INIT((name).children), \
 	.siblings = LIST_HEAD_INIT((name).siblings)
 

@@ -366,6 +366,7 @@ static struct pll_vote_clk pll8_clk = {
 		.rate = 384000000,
 		.ops = &clk_ops_pll_vote,
 		CLK_INIT(pll8_clk.c),
+		.warned = true,
 	},
 };
 
@@ -377,6 +378,7 @@ static struct pll_clk pll2_clk = {
 		.rate = 800000000,
 		.ops = &clk_ops_pll,
 		CLK_INIT(pll2_clk.c),
+		.warned = true,
 	},
 };
 
@@ -388,6 +390,7 @@ static struct pll_clk pll3_clk = {
 		.rate = 0, /* TODO: Detect rate dynamically */
 		.ops = &clk_ops_pll,
 		CLK_INIT(pll3_clk.c),
+		.warned = true,
 	},
 };
 
@@ -426,6 +429,7 @@ static struct fixed_clk pll4_clk = {
 		.rate = 540672000,
 		.ops = &clk_ops_pll4,
 		CLK_INIT(pll4_clk.c),
+		.warned = true,
 	},
 };
 
@@ -3882,11 +3886,11 @@ static void __init msm8660_clock_post_init(void)
 
 	/* Reset 3D core while clocked to ensure it resets completely. */
 	clk_set_rate(&gfx3d_clk.c, 27000000);
-	clk_enable(&gfx3d_clk.c);
+	clk_prepare_enable(&gfx3d_clk.c);
 	clk_reset(&gfx3d_clk.c, CLK_RESET_ASSERT);
 	udelay(5);
 	clk_reset(&gfx3d_clk.c, CLK_RESET_DEASSERT);
-	clk_disable(&gfx3d_clk.c);
+	clk_disable_unprepare(&gfx3d_clk.c);
 
 	/* Initialize rates for clocks that only support one. */
 	clk_set_rate(&pdm_clk.c, 27000000);
@@ -3918,7 +3922,7 @@ static int __init msm8660_clock_late_init(void)
 	rc = clk_set_rate(mmfpb_a_clk, 64000000);
 	if (WARN(rc, "mmfpb_a_clk rate was not set (%d)\n", rc))
 		return rc;
-	rc = clk_enable(mmfpb_a_clk);
+	rc = clk_prepare_enable(mmfpb_a_clk);
 	if (WARN(rc, "mmfpb_a_clk not enabled (%d)\n", rc))
 		return rc;
 

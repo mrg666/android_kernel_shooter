@@ -192,6 +192,14 @@ config  ARCH_MSM_KRAIT
 config  MSM_SMP
 	bool
 
+config MSM_MPDEC
+	bool "Enable kernel based mpdecision"
+	depends on MSM_SMP
+	default n
+	help
+	  This enables kernel based multi core control.
+	  (up/down hotplug based on load)
+
 config  ARCH_MSM_SCORPIONMP
 	select ARCH_MSM_SCORPION
 	select MSM_SMP

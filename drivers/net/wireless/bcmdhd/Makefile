@@ -40,6 +40,7 @@ NOSTDINC_FLAGS := -I$(COMPAT_WIRELESS)/include/ \
         -include $(COMPAT_WIRELESS)/include/linux/compat-2.6.h
 endif
 
+CFLAGS_wl_cfgp2p.o = -Wno-sizeof-pointer-memaccess
 DHDOFILES = dhd_linux.o linux_osl.o bcmutils.o dhd_common.o dhd_custom_gpio.o \
         siutils.o sbutils.o aiutils.o hndpmu.o bcmwifi.o dhd_sdio.o   \
         dhd_linux_sched.o dhd_cdc.o bcmsdh_sdmmc.o bcmsdh.o bcmsdh_linux.o    \

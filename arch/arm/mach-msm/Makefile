@@ -372,7 +372,6 @@ obj-$(CONFIG_MACH_SHOOTER) += board-shooter-mmc.o board-shooter-wifi.o board-com
 else
 obj-$(CONFIG_MACH_SHOOTER) += board-shooter-mmc.o board-shooter-wifi.o
 endif
-obj-$(CONFIG_FORCE_FAST_CHARGE) += fastchg.o
 obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter_u.o
 obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter_u-keypad.o
 obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter_u-audio.o

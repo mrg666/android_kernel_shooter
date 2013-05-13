@@ -961,6 +961,7 @@ static void diag_cleanup(void)
 	struct list_head *act, *tmp;
 	struct usb_diag_ch *_ch;
 	unsigned long flags;
+	struct dentry *dent_diag;
 
 	debugfs_remove_recursive(dent_diag);
 

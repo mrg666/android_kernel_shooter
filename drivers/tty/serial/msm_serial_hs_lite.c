@@ -40,7 +40,9 @@
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/gpio.h>
+#ifdef CONFIG_DEBUG_FS
 #include <linux/debugfs.h>
+#endif
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <mach/board.h>
@@ -120,7 +122,9 @@ static struct of_device_id msm_hsl_match_table[] = {
 	},
 	{}
 };
+#ifdef CONFIG_DEBUG_FS
 static struct dentry *debug_base;
+#endif
 static inline void wait_for_xmitr(struct uart_port *port, int bits);
 static inline void msm_hsl_write(struct uart_port *port,
 				 unsigned int val, unsigned int off)
@@ -228,6 +232,7 @@ DEFINE_SIMPLE_ATTRIBUTE(loopback_enable_fops, msm_hsl_loopback_enable_get,
  * test scripts.
  * writing 0 disables the internal loopback mode. Default is disabled.
  */
+#ifdef CONFIG_DEBUG_FS
 static void msm_hsl_debugfs_init(struct msm_hsl_port *msm_uport,
 								int id)
 {
@@ -244,6 +249,8 @@ static void msm_hsl_debugfs_init(struct msm_hsl_port *msm_uport,
 		pr_err("%s(): Cannot create loopback.%d debug entry",
 							__func__, id);
 }
+#endif
+
 static void msm_hsl_stop_tx(struct uart_port *port)
 {
 	struct msm_hsl_port *msm_hsl_port = UART_TO_MSM(port);
@@ -1407,7 +1414,9 @@ static int __devinit msm_serial_hsl_probe(struct platform_device *pdev)
 	if (unlikely(ret))
 		pr_err("%s():Can't create console attribute\n", __func__);
 #endif
+#ifdef CONFIG_DEBUG_FS
 	msm_hsl_debugfs_init(msm_hsl_port, pdev->id);
+#endif
 
 	/* Temporarily increase the refcount on the GSBI clock to avoid a race
 	 * condition with the earlyprintk handover mechanism.
@@ -1438,7 +1447,9 @@ static int __devexit msm_serial_hsl_remove(struct platform_device *pdev)
 
 	clk_put(msm_hsl_port->pclk);
 	clk_put(msm_hsl_port->clk);
+#ifdef CONFIG_DEBUG_FS
 	debugfs_remove(msm_hsl_port->loopback_dir);
+#endif
 
 	return 0;
 }
@@ -1541,9 +1552,11 @@ static int __init msm_serial_hsl_init(void)
 	if (unlikely(ret))
 		return ret;
 
+#ifdef CONFIG_DEBUG_FS
 	debug_base = debugfs_create_dir("msm_serial_hsl", NULL);
 	if (IS_ERR_OR_NULL(debug_base))
 		pr_err("%s():Cannot create debugfs dir\n", __func__);
+#endif
 
 	ret = platform_driver_register(&msm_hsl_platform_driver);
 	if (unlikely(ret))
@@ -1556,7 +1569,9 @@ static int __init msm_serial_hsl_init(void)
 
 static void __exit msm_serial_hsl_exit(void)
 {
+#ifdef CONFIG_DEBUG_FS
 	debugfs_remove_recursive(debug_base);
+#endif
 #ifdef CONFIG_SERIAL_MSM_HSL_CONSOLE
 	if (msm_serial_hsl_enable)
 		unregister_console(&msm_hsl_console);

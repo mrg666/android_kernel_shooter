@@ -13,7 +13,9 @@
 #ifndef __KGSL_LOG_H
 #define __KGSL_LOG_H
 
+#ifdef CONFIG_DEBUG_FS
 extern unsigned int kgsl_cff_dump_enable;
+#endif
 
 #define KGSL_LOG_INFO(dev, lvl, fmt, args...) \
 	do { \

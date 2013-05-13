@@ -52,7 +52,9 @@
 #include <linux/stat.h>
 #include <linux/device.h>
 #include <linux/wakelock.h>
+#ifdef CONFIG_DEBUG_FS
 #include <linux/debugfs.h>
+#endif
 #include <asm/atomic.h>
 #include <asm/irq.h>
 #include <asm/system.h>
@@ -169,7 +171,9 @@ struct msm_hs_port {
 #define RETRY_TIMEOUT 5
 #define UARTDM_NR 2
 
+#ifdef CONFIG_DEBUG_FS
 static struct dentry *debug_base;
+#endif
 static struct msm_hs_port q_uart_port[UARTDM_NR];
 static struct platform_driver msm_serial_hs_platform_driver;
 static struct uart_driver msm_hs_driver;
@@ -368,6 +372,7 @@ DEFINE_SIMPLE_ATTRIBUTE(loopback_enable_fops, msm_serial_loopback_enable_get,
  * test scripts.
  * writing 0 disables the internal loopback mode. Default is disabled.
  */
+#ifdef CONFIG_DEBUG_FS
 static void __init msm_serial_debugfs_init(struct msm_hs_port *msm_uport,
 					   int id)
 {
@@ -381,6 +386,7 @@ static void __init msm_serial_debugfs_init(struct msm_hs_port *msm_uport,
 		debugfs_remove_recursive(debug_base);
 	}
 }
+#endif
 
 static int __devexit msm_hs_remove(struct platform_device *pdev)
 {
@@ -403,7 +409,9 @@ static int __devexit msm_hs_remove(struct platform_device *pdev)
 			dev_err(dev, "GPIO config error\n");
 
 	sysfs_remove_file(&pdev->dev.kobj, &dev_attr_clock.attr);
+#ifdef CONFIG_DEBUG_FS
 	debugfs_remove_recursive(debug_base);
+#endif
 
 	dma_unmap_single(dev, msm_uport->rx.mapped_cmd_ptr, sizeof(dmov_box),
 			 DMA_TO_DEVICE);
@@ -2022,7 +2030,9 @@ static int __init msm_hs_probe(struct platform_device *pdev)
 	if (unlikely(ret))
 		return ret;
 
+#ifdef CONFIG_DEBUG_FS
 	msm_serial_debugfs_init(msm_uport, pdev->id);
+#endif
 
 	uport->line = pdev->id;
 	return uart_add_one_port(&msm_hs_driver, uport);
@@ -2042,15 +2052,19 @@ static int __init msm_serial_hs_init(void)
 		printk(KERN_WARNING "[BT]%s failed to load\n", __func__);
 		return ret;
 	}
+#ifdef CONFIG_DEBUG_FS
 	debug_base = debugfs_create_dir("msm_serial_hs", NULL);
 	if (IS_ERR_OR_NULL(debug_base))
 		pr_info("msm_serial_hs: Cannot create debugfs dir\n");
+#endif
 
 	ret = platform_driver_probe(&msm_serial_hs_platform_driver,
 					msm_hs_probe);
 	if (ret) {
 		printk(KERN_WARNING "[BT]%s failed to load\n", __func__);
+#ifdef CONFIG_DEBUG_FS
 		debugfs_remove_recursive(debug_base);
+#endif
 		uart_unregister_driver(&msm_hs_driver);
 		return ret;
 	}

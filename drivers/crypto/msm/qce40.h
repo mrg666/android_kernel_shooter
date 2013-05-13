@@ -239,4 +239,3 @@ struct ce_dm_data {
 	struct msm_dmov_cmd  *chan_ce_out_cmd;
 };
 #endif /* _DRIVERS_CRYPTO_MSM_QCE40_H */
-

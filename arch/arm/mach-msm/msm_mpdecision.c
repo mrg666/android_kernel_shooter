@@ -40,7 +40,7 @@
 #define MSM_MPDEC_STARTDELAY            20000
 #define MSM_MPDEC_DELAY                 100
 #define MSM_MPDEC_PAUSE                 10000
-#define MSM_MPDEC_IDLE_FREQ             486000
+#define MSM_MPDEC_IDLE_FREQ             384000
 
 struct global_attr {
 	struct attribute attr;
@@ -95,7 +95,7 @@ static struct msm_mpdec_tuners {
     .scroff_single_core = true,
     .idle_freq = MSM_MPDEC_IDLE_FREQ,
     .max_cpus = CONFIG_NR_CPUS,
-    .min_cpus = 1,
+    .min_cpus = 2,
 };
 
 static unsigned int NwNs_Threshold[8] = {18, 0, 25, 15, 32, 28, 0, 35};

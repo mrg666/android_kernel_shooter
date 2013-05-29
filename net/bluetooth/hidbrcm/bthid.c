@@ -17,6 +17,7 @@
  *  02111-1307, USA.
  *
  *****************************************************************************/
+#include <linux/module.h>
 #include <linux/poll.h>
 #include <linux/miscdevice.h>
 #include <linux/hid.h>
@@ -71,11 +72,6 @@ static void bthid_ll_close(struct hid_device *hid)
 static int bthid_ll_hidinput_event(struct input_dev *dev, unsigned int type,
 		unsigned int code, int value)
 {
-	/*
-	printk("######## bthid_ll_hidinput_event: dev = %p, type = %d,
-			code = %d, value = %d ########\n",
-		dev, type, code, value);
-	*/
 	return 0;
 }
 
@@ -157,9 +153,6 @@ static ssize_t bthid_write(struct file *file, const char __user *buffer,
 	unsigned char *buf;
 	struct bthid_device *p_dev = file->private_data;
 
-	/*
-	printk("######## bthid_write: count = %d ########\n", count);
-	*/
 
 	if (p_dev->dscp_set == 0) {
 		printk(KERN_INFO "bthid_write: Oops, HID report \
@@ -181,9 +174,6 @@ static ssize_t bthid_write(struct file *file, const char __user *buffer,
 
 	kfree(buf);
 
-	/*
-	printk("######## bthid_write: done ########\n");
-	*/
 
 	return 0;
 }

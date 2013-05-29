@@ -949,8 +949,6 @@ CONFIG_BPF_JIT=y
 # CONFIG_CAN is not set
 # CONFIG_IRDA is not set
 CONFIG_BT=y
-CONFIG_BT_L2CAP=y
-# CONFIG_BT_SCO is not set
 # CONFIG_BT_RFCOMM is not set
 # CONFIG_BT_BNEP is not set
 CONFIG_BT_HIDP=y

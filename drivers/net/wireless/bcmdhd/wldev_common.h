@@ -40,14 +40,14 @@ s32 wldev_ioctl(
  */
 s32 wldev_iovar_getbuf(
 	struct net_device *dev, s8 *iovar_name,
-	void *param, s32 paramlen, void *buf, s32 buflen, struct mutex *buf_sync);
+	void *param, s32 paramlen, void *buf, s32 buflen, struct mutex* buf_sync);
 
 /** Set named IOVARs, this function calls wl_dev_ioctl with
  *  WLC_SET_VAR IOCTL code
  */
 s32 wldev_iovar_setbuf(
 	struct net_device *dev, s8 *iovar_name,
-	void *param, s32 paramlen, void *buf, s32 buflen, struct mutex *buf_sync);
+	void *param, s32 paramlen, void *buf, s32 buflen, struct mutex* buf_sync);
 
 s32 wldev_iovar_setint(
 	struct net_device *dev, s8 *iovar, s32 val);
@@ -68,14 +68,14 @@ s32 wldev_mkiovar_bsscfg(
  */
 s32 wldev_iovar_getbuf_bsscfg(
 	struct net_device *dev, s8 *iovar_name, void *param, s32 paramlen,
-	void *buf, s32 buflen, s32 bsscfg_idx, struct mutex *buf_sync);
+	void *buf, s32 buflen, s32 bsscfg_idx, struct mutex* buf_sync);
 
 /** Set named and bsscfg indexed IOVARs, this function calls wl_dev_ioctl with
  *  WLC_SET_VAR IOCTL code
  */
 s32 wldev_iovar_setbuf_bsscfg(
 	struct net_device *dev, s8 *iovar_name, void *param, s32 paramlen,
-	void *buf, s32 buflen, s32 bsscfg_idx, struct mutex *buf_sync);
+	void *buf, s32 buflen, s32 bsscfg_idx, struct mutex* buf_sync);
 
 s32 wldev_iovar_getint_bsscfg(
 	struct net_device *dev, s8 *iovar, s32 *pval, s32 bssidx);

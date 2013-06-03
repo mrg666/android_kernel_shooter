@@ -1,72 +1,13 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
- *       copyright notice, this list of conditions and the following
- *       disclaimer in the documentation and/or other materials provided
- *       with the distribution.
- *     * Neither the name of Code Aurora Forum, Inc. nor the names of its
- *       contributors may be used to endorse or promote products derived
- *       from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Alternatively, and instead of the terms immediately above, this
- * software may be relicensed by the recipient at their option under the
- * terms of the GNU General Public License version 2 ("GPL") and only
- * version 2.  If the recipient chooses to relicense the software under
- * the GPL, then the recipient shall replace all of the text immediately
- * above and including this paragraph with the text immediately below
- * and between the words START OF ALTERNATE GPL TERMS and END OF
- * ALTERNATE GPL TERMS and such notices and license terms shall apply
- * INSTEAD OF the notices and licensing terms given above.
- *
- * START OF ALTERNATE GPL TERMS
- *
- * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
- *
- * This software was originally licensed under the Code Aurora Forum
- * Inc. Dual BSD/GPL License version 1.1 and relicensed as permitted
- * under the terms thereof by a recipient under the General Public
- * License Version 2.
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
  * only version 2 as published by the Free Software Foundation.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * END OF ALTERNATE GPL TERMS
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 #include <linux/module.h>
@@ -74,8 +15,7 @@
 #include <linux/list.h>
 #include <linux/uaccess.h>
 #include <linux/slab.h>
-
-#include <media/msm_gemini_8x60.h>
+#include <media/msm_gemini.h>
 #include "msm_gemini_sync.h"
 #include "msm_gemini_core.h"
 #include "msm_gemini_platform.h"
@@ -210,7 +150,8 @@ inline void msm_gemini_outbuf_q_cleanup(struct msm_gemini_q *q_p)
 	do {
 		buf_p = msm_gemini_q_out(q_p);
 		if (buf_p) {
-			msm_gemini_platform_p2v(buf_p->file);
+			msm_gemini_platform_p2v(buf_p->file,
+				&buf_p->handle);
 			GMN_DBG("%s:%d] %s\n", __func__, __LINE__, q_p->name);
 			kfree(buf_p);
 		}
@@ -336,7 +277,7 @@ int msm_gemini_we_pingpong_irq(struct msm_gemini_device *pgmn_dev,
 			(int) buf_in->y_buffer_addr, buf_in->y_len);
 		rc = msm_gemini_q_in_buf(&pgmn_dev->output_rtn_q, buf_in);
 	} else {
-		GMN_PR_ERR("%s:%d] no output return buffer\n", __func__,
+		GMN_DBG("%s:%d] no output return buffer\n", __func__,
 			__LINE__);
 		rc = -1;
 	}
@@ -347,8 +288,7 @@ int msm_gemini_we_pingpong_irq(struct msm_gemini_device *pgmn_dev,
 		rc = msm_gemini_core_we_buf_update(buf_out);
 		kfree(buf_out);
 	} else {
-		if (buf_in)
-			msm_gemini_core_we_buf_reset(buf_in);
+		msm_gemini_core_we_buf_reset(buf_in);
 		GMN_DBG("%s:%d] no output buffer\n", __func__, __LINE__);
 		rc = -2;
 	}
@@ -376,7 +316,7 @@ int msm_gemini_output_get(struct msm_gemini_device *pgmn_dev, void __user *to)
 	}
 
 	buf_cmd = buf_p->vbuf;
-	msm_gemini_platform_p2v(buf_p->file);
+	msm_gemini_platform_p2v(buf_p->file, &buf_p->handle);
 	kfree(buf_p);
 
 	GMN_DBG("%s:%d] 0x%08x %d\n", __func__, __LINE__,
@@ -419,7 +359,7 @@ int msm_gemini_output_buf_enqueue(struct msm_gemini_device *pgmn_dev,
 		buf_cmd.y_len);
 
 	buf_p->y_buffer_addr = msm_gemini_platform_v2p(buf_cmd.fd,
-		buf_cmd.y_len, &buf_p->file) + buf_cmd.phy_offset;
+		buf_cmd.y_len, &buf_p->file, &buf_p->handle);
 	if (!buf_p->y_buffer_addr) {
 		GMN_PR_ERR("%s:%d] v2p wrong\n", __func__, __LINE__);
 		kfree(buf_p);
@@ -446,7 +386,7 @@ int msm_gemini_fe_pingpong_irq(struct msm_gemini_device *pgmn_dev,
 			(int) buf_in->y_buffer_addr, buf_in->y_len);
 		rc = msm_gemini_q_in_buf(&pgmn_dev->input_rtn_q, buf_in);
 	} else {
-		GMN_PR_ERR("%s:%d] no input return buffer\n", __func__,
+		GMN_DBG("%s:%d] no input return buffer\n", __func__,
 			__LINE__);
 		rc = -1;
 	}
@@ -468,7 +408,7 @@ int msm_gemini_fe_pingpong_irq(struct msm_gemini_device *pgmn_dev,
 	return rc;
 }
 
-int msm_gemini_input_get(struct msm_gemini_device *pgmn_dev, void __user *to)
+int msm_gemini_input_get(struct msm_gemini_device *pgmn_dev, void __user * to)
 {
 	struct msm_gemini_core_buf *buf_p;
 	struct msm_gemini_buf buf_cmd;
@@ -484,7 +424,7 @@ int msm_gemini_input_get(struct msm_gemini_device *pgmn_dev, void __user *to)
 	}
 
 	buf_cmd = buf_p->vbuf;
-	msm_gemini_platform_p2v(buf_p->file);
+	msm_gemini_platform_p2v(buf_p->file, &buf_p->handle);
 	kfree(buf_p);
 
 	GMN_DBG("%s:%d] 0x%08x %d\n", __func__, __LINE__,
@@ -526,7 +466,8 @@ int msm_gemini_input_buf_enqueue(struct msm_gemini_device *pgmn_dev,
 		(int) buf_cmd.vaddr, buf_cmd.y_len);
 
 	buf_p->y_buffer_addr    = msm_gemini_platform_v2p(buf_cmd.fd,
-		buf_cmd.y_len + buf_cmd.cbcr_len, &buf_p->file) + buf_cmd.phy_offset;
+		buf_cmd.y_len + buf_cmd.cbcr_len, &buf_p->file,
+		&buf_p->handle)	+ buf_cmd.offset;
 	buf_p->y_len          = buf_cmd.y_len;
 
 	buf_p->cbcr_buffer_addr = buf_p->y_buffer_addr + buf_cmd.y_len;
@@ -634,7 +575,7 @@ int __msm_gemini_release(struct msm_gemini_device *pgmn_dev)
 	msm_gemini_q_cleanup(&pgmn_dev->output_rtn_q);
 	msm_gemini_outbuf_q_cleanup(&pgmn_dev->output_buf_q);
 	msm_gemini_q_cleanup(&pgmn_dev->input_rtn_q);
-	msm_gemini_q_cleanup(&pgmn_dev->input_buf_q);
+	msm_gemini_outbuf_q_cleanup(&pgmn_dev->input_buf_q);
 
 	if (pgmn_dev->open_count)
 		GMN_PR_ERR(KERN_ERR "%s: multiple opens\n", __func__);
@@ -896,4 +837,3 @@ int __msm_gemini_exit(struct msm_gemini_device *pgmn_dev)
 	kfree(pgmn_dev);
 	return 0;
 }
-

@@ -31,7 +31,7 @@ ifeq ($(CONFIG_MSM_CAMERA_V4L2),y)
 	obj-$(CONFIG_MSM_CAMERA) += gemini/
 	obj-$(CONFIG_MSM_CAMERA_FLASH) += flash_v4l2.o
 else
-	obj-$(CONFIG_MSM_CAMERA) += gemini_8x60/
+	obj-$(CONFIG_MSM_CAMERA) += gemini/
 ifeq ($(CONFIG_ARCH_MSM7X27A),y)
 	obj-$(CONFIG_MSM_CAMERA_FLASH) += flash.o
 else

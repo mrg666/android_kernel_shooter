@@ -1339,7 +1339,7 @@ static int memdesc_sg_virt(struct kgsl_memdesc *memdesc,
 		if (pgd_none(*ppgd) || pgd_bad(*ppgd))
 			goto err;
 
-		ppmd = pmd_offset(ppgd, paddr);
+		ppmd = pmd_offset(pud_offset(ppgd, paddr), paddr);
 		if (pmd_none(*ppmd) || pmd_bad(*ppmd))
 			goto err;
 

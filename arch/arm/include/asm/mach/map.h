@@ -40,8 +40,8 @@ extern void iotable_init(struct map_desc *, int);
 
 struct mem_type {
 	pteval_t prot_pte;
-	unsigned int prot_l1;
-	unsigned int prot_sect;
+	pmdval_t prot_l1;
+	pmdval_t prot_sect;
 	unsigned int domain;
 };
 

@@ -236,10 +236,6 @@ armpmu_read(struct perf_event *event)
 {
 	struct hw_perf_event *hwc = &event->hw;
 
-	/* Don't read disabled counters! */
-	if (hwc->idx < 0)
-		return;
-
 	armpmu_event_update(event, hwc, hwc->idx, 0);
 }
 
@@ -296,8 +292,6 @@ armpmu_del(struct perf_event *event, int flags)
 	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
 	struct hw_perf_event *hwc = &event->hw;
 	int idx = hwc->idx;
-
-	WARN_ON(idx < 0);
 
 	clear_bit(idx, cpuc->active_mask);
 	armpmu_stop(event, PERF_EF_UPDATE);

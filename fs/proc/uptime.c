@@ -18,7 +18,7 @@ static int uptime_proc_show(struct seq_file *m, void *v)
 
 	idletime = 0;
 	for_each_possible_cpu(i)
-		idletime = cputime64_add(idletime, kstat_cpu(i).cpustat.idle);
+		idletime += kstat_cpu(i).cpustat.idle;
 
 	do_posix_clock_monotonic_gettime(&uptime);
 	monotonic_to_bootbased(&uptime);

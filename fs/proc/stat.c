@@ -10,6 +10,7 @@
 #include <linux/time.h>
 #include <linux/irqnr.h>
 #include <asm/cputime.h>
+#include <linux/tick.h>
 
 #ifndef arch_irq_stat_cpu
 #define arch_irq_stat_cpu(cpu) 0
@@ -17,8 +18,63 @@
 #ifndef arch_irq_stat
 #define arch_irq_stat() 0
 #endif
-#ifndef arch_idle_time
-#define arch_idle_time(cpu) 0
+
+#ifdef arch_idle_time
+
+static cputime64_t get_idle_time(int cpu)
+{
+	cputime64_t idle;
+
+	idle = kstat_cpu(cpu).cpustat.idle;
+	if (cpu_online(cpu) && !nr_iowait_cpu(cpu))
+		idle += arch_idle_time(cpu);
+	return idle;
+}
+
+static cputime64_t get_iowait_time(int cpu)
+{
+	cputime64_t iowait;
+
+	iowait = kstat_cpu(cpu).cpustat.iowait;
+	if (cpu_online(cpu) && nr_iowait_cpu(cpu))
+		iowait += arch_idle_time(cpu);
+	return iowait;
+}
+
+#else
+
+static u64 get_idle_time(int cpu)
+{
+	u64 idle, idle_time = -1ULL;
+
+	if (cpu_online(cpu))
+		idle_time = get_cpu_idle_time_us(cpu, NULL);
+
+	if (idle_time == -1ULL)
+		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
+		idle = kstat_cpu(cpu).cpustat.idle;
+	else
+		idle = usecs_to_cputime64(idle_time);
+
+	return idle;
+}
+
+static u64 get_iowait_time(int cpu)
+{
+	u64 iowait, iowait_time = -1ULL;
+
+	if (cpu_online(cpu))
+		iowait_time = get_cpu_iowait_time_us(cpu, NULL);
+
+	if (iowait_time == -1ULL)
+		/* !NO_HZ or cpu offline so we can rely on cpustat.iowait */
+		iowait = kstat_cpu(cpu).cpustat.iowait;
+	else
+		iowait = usecs_to_cputime64(iowait_time);
+
+	return iowait;
+}
+
 #endif
 
 static int show_stat(struct seq_file *p, void *v)
@@ -42,8 +98,8 @@ static int show_stat(struct seq_file *p, void *v)
 		user += kstat_cpu(i).cpustat.user;
 		nice += kstat_cpu(i).cpustat.nice;
 		system += kstat_cpu(i).cpustat.system;
-		idle += kstat_cpu(i).cpustat.idle + arch_idle_time(i);
-		iowait += kstat_cpu(i).cpustat.iowait;
+		idle += get_idle_time(i);
+		iowait += get_iowait_time(i);
 		irq += kstat_cpu(i).cpustat.irq;
 		softirq += kstat_cpu(i).cpustat.softirq;
 		steal += kstat_cpu(i).cpustat.steal;
@@ -79,8 +135,8 @@ static int show_stat(struct seq_file *p, void *v)
 		user = kstat_cpu(i).cpustat.user;
 		nice = kstat_cpu(i).cpustat.nice;
 		system = kstat_cpu(i).cpustat.system;
-		idle = kstat_cpu(i).cpustat.idle + arch_idle_time(i);
-		iowait = kstat_cpu(i).cpustat.iowait;
+		idle = get_idle_time(i);
+		iowait = get_iowait_time(i);
 		irq = kstat_cpu(i).cpustat.irq;
 		softirq = kstat_cpu(i).cpustat.softirq;
 		steal = kstat_cpu(i).cpustat.steal;
@@ -128,7 +184,7 @@ static int show_stat(struct seq_file *p, void *v)
 
 static int stat_open(struct inode *inode, struct file *file)
 {
-	unsigned size = 1024 + 128 * num_possible_cpus();
+	size_t size = 1024 + 128 * num_possible_cpus();
 	char *buf;
 	struct seq_file *m;
 	int res;

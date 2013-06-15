@@ -33,24 +33,22 @@ static int show_stat(struct seq_file *p, void *v)
 	struct timespec boottime;
 
 	user = nice = system = idle = iowait =
-		irq = softirq = steal = cputime64_zero;
-	guest = guest_nice = cputime64_zero;
+		irq = softirq = steal = 0;
+	guest = guest_nice = 0;
 	getboottime(&boottime);
 	jif = boottime.tv_sec;
 
 	for_each_possible_cpu(i) {
-		user = cputime64_add(user, kstat_cpu(i).cpustat.user);
-		nice = cputime64_add(nice, kstat_cpu(i).cpustat.nice);
-		system = cputime64_add(system, kstat_cpu(i).cpustat.system);
-		idle = cputime64_add(idle, kstat_cpu(i).cpustat.idle);
-		idle = cputime64_add(idle, arch_idle_time(i));
-		iowait = cputime64_add(iowait, kstat_cpu(i).cpustat.iowait);
-		irq = cputime64_add(irq, kstat_cpu(i).cpustat.irq);
-		softirq = cputime64_add(softirq, kstat_cpu(i).cpustat.softirq);
-		steal = cputime64_add(steal, kstat_cpu(i).cpustat.steal);
-		guest = cputime64_add(guest, kstat_cpu(i).cpustat.guest);
-		guest_nice = cputime64_add(guest_nice,
-			kstat_cpu(i).cpustat.guest_nice);
+		user += kstat_cpu(i).cpustat.user;
+		nice += kstat_cpu(i).cpustat.nice;
+		system += kstat_cpu(i).cpustat.system;
+		idle += kstat_cpu(i).cpustat.idle + arch_idle_time(i);
+		iowait += kstat_cpu(i).cpustat.iowait;
+		irq += kstat_cpu(i).cpustat.irq;
+		softirq += kstat_cpu(i).cpustat.softirq;
+		steal += kstat_cpu(i).cpustat.steal;
+		guest += kstat_cpu(i).cpustat.guest;
+		guest_nice += kstat_cpu(i).cpustat.guest_nice;
 		sum += kstat_cpu_irqs_sum(i);
 		sum += arch_irq_stat_cpu(i);
 
@@ -81,8 +79,7 @@ static int show_stat(struct seq_file *p, void *v)
 		user = kstat_cpu(i).cpustat.user;
 		nice = kstat_cpu(i).cpustat.nice;
 		system = kstat_cpu(i).cpustat.system;
-		idle = kstat_cpu(i).cpustat.idle;
-		idle = cputime64_add(idle, arch_idle_time(i));
+		idle = kstat_cpu(i).cpustat.idle + arch_idle_time(i);
 		iowait = kstat_cpu(i).cpustat.iowait;
 		irq = kstat_cpu(i).cpustat.irq;
 		softirq = kstat_cpu(i).cpustat.softirq;

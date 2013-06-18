@@ -468,7 +468,7 @@ static int
 __hw_perf_event_init(struct perf_event *event)
 {
 	struct hw_perf_event *hwc = &event->hw;
-	int mapping, err;
+	int mapping;
 
 	/* Decode the generic type into an ARM event identifier. */
 	if (PERF_TYPE_HARDWARE == event->attr.type) {
@@ -524,14 +524,12 @@ __hw_perf_event_init(struct perf_event *event)
 		local64_set(&hwc->period_left, hwc->sample_period);
 	}
 
-	err = 0;
 	if (event->group_leader != event) {
-		err = validate_group(event);
-		if (err)
+		if (validate_group(event) != 0)
 			return -EINVAL;
 	}
 
-	return err;
+	return 0;
 }
 
 static int armpmu_event_init(struct perf_event *event)

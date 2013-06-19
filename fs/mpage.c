@@ -391,12 +391,6 @@ mpage_readpages(struct address_space *mapping, struct list_head *pages,
 					&first_logical_block,
 					get_block);
 
-/* Modified by Memory, Studio Software for Zimmer */
-#if defined(CONFIG_ZIMMER)
-			if (bio) {
-				bio->bi_rw |= (REQ_SWAPIN_DMPG);
-			}
-#endif
 		}
 		page_cache_release(page);
 	}

@@ -155,6 +155,7 @@ enum rq_flag_bits {
 #if defined(CONFIG_ZIMMER)
 	__REQ_SWAPIN_DMPG,	/* request to swap-in page from swap area or demand paging */
 #endif
+	__REQ_URGENT,		/* urgent request */
 	__REQ_NR_BITS,		/* stops here */
 };
 
@@ -165,6 +166,7 @@ enum rq_flag_bits {
 #define REQ_SYNC		(1 << __REQ_SYNC)
 #define REQ_META		(1 << __REQ_META)
 #define REQ_DISCARD		(1 << __REQ_DISCARD)
+#define REQ_URGENT              (1 << __REQ_URGENT)
 #define REQ_NOIDLE		(1 << __REQ_NOIDLE)
 
 #define REQ_FAILFAST_MASK \

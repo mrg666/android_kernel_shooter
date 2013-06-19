@@ -28,6 +28,7 @@
 #include <linux/task_io_accounting_ops.h>
 #include <linux/fault-inject.h>
 #include <linux/list_sort.h>
+#include <linux/delay.h>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/block.h>
@@ -309,9 +310,9 @@ void __blk_run_queue(struct request_queue *q)
 		return;
 
 	if (!q->notified_urgent &&
-		q->elevator->elevator_type->ops.elevator_is_urgent_fn &&
+		q->elevator->type->ops.elevator_is_urgent_fn &&
 		q->urgent_request_fn &&
-		q->elevator->elevator_type->ops.elevator_is_urgent_fn(q)) {
+		q->elevator->type->ops.elevator_is_urgent_fn(q)) {
 		q->notified_urgent = true;
 		q->urgent_request_fn(q);
 	} else
@@ -359,6 +360,33 @@ void blk_put_queue(struct request_queue *q)
 	kobject_put(&q->kobj);
 }
 EXPORT_SYMBOL(blk_put_queue);
+
+/**
+ * blk_drain_queue - drain requests from request_queue
+ * @q: queue to drain
+ *
+ * Drain ELV_PRIV requests from @q.  The caller is responsible for ensuring
+ * that no new requests which need to be drained are queued.
+ */
+void blk_drain_queue(struct request_queue *q)
+{
+	while (true) {
+		int nr_rqs;
+
+		spin_lock_irq(q->queue_lock);
+
+		elv_drain_elevator(q);
+
+		__blk_run_queue(q);
+		nr_rqs = q->rq.elvpriv;
+
+		spin_unlock_irq(q->queue_lock);
+
+		if (!nr_rqs)
+			break;
+		msleep(10);
+	}
+}
 
 /*
  * Note: If a driver supplied the queue lock, it is disconnected
@@ -722,12 +750,7 @@ static struct request *get_request(struct request_queue *q, int rw_flags,
 			}
 
 			else {
-/* Modified by Memory, Studio Software for Zimmer */
-#if defined(CONFIG_ZIMMER)
-                if (may_queue != ELV_MQUEUE_MUST && !ioc_batching(q, ioc) && (!(bio->bi_rw & REQ_SWAPIN_DMPG))) {
-#else
                 if (may_queue != ELV_MQUEUE_MUST && !ioc_batching(q, ioc)) {
-#endif
 					/*
 					 * The queue is full and the allocating
 					 * process is not a "batcher", and not
@@ -745,12 +768,7 @@ static struct request *get_request(struct request_queue *q, int rw_flags,
 	 * limit of requests, otherwise we could have thousands of requests
 	 * allocated with any setting of ->nr_requests
 	 */
-	/* Modified by Memory, Studio Software for Zimmer */
-#if defined(CONFIG_ZIMMER)
-    if ((rl->count[is_sync] >= (3 * q->nr_requests / 2)) && (!(bio->bi_rw & REQ_SWAPIN_DMPG)))
-#else
-    if ((rl->count[is_sync] >= (3 * q->nr_requests / 2)))
-#endif
+	if (rl->count[is_sync] >= (3 * q->nr_requests / 2))
 		goto out;
 
 	rl->count[is_sync]++;
@@ -1013,7 +1031,7 @@ bool blk_reinsert_req_sup(struct request_queue *q)
 {
 	if (unlikely(!q))
 		return false;
-	return q->elevator->elevator_type->ops.elevator_reinsert_req_fn ? true : false;
+	return q->elevator->type->ops.elevator_reinsert_req_fn ? true : false;
 }
 EXPORT_SYMBOL(blk_reinsert_req_sup);
 
@@ -1287,12 +1305,6 @@ void init_request_from_bio(struct request *req, struct bio *bio)
 	if (bio->bi_rw & REQ_RAHEAD)
 		req->cmd_flags |= REQ_FAILFAST_MASK;
 
-/* Modified by Memory, Studio Software for Zimmer */
-#if defined(CONFIG_ZIMMER)
-	if (bio->bi_rw & REQ_SWAPIN_DMPG)
-		req->cmd_flags |= (REQ_SWAPIN_DMPG | REQ_NOMERGE);
-#endif
-
 	req->errors = 0;
 	req->__sector = bio->bi_sector;
 	req->ioprio = bio_prio(bio);
@@ -1313,12 +1325,7 @@ static int __make_request(struct request_queue *q, struct bio *bio)
 	 */
 	blk_queue_bounce(q, &bio);
 
-/* Modified by Memory, Studio Software for Zimmer */
-#if defined(CONFIG_ZIMMER)
-	if (bio->bi_rw & (REQ_FLUSH | REQ_FUA) || bio->bi_rw & REQ_SWAPIN_DMPG) {
-#else
 	if (bio->bi_rw & (REQ_FLUSH | REQ_FUA)) {
-#endif
 		spin_lock_irq(q->queue_lock);
 		where = ELEVATOR_INSERT_FLUSH;
 		goto get_rq;

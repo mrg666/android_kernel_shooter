@@ -208,7 +208,7 @@ struct row_data {
 	unsigned int			cycle_flags;
 };
 
-#define RQ_ROWQ(rq) ((struct row_queue *) ((rq)->elv.priv[0]))
+#define RQ_ROWQ(rq) ((struct row_queue *) ((rq)->elevator_private[0]))
 
 #define row_log(q, fmt, args...)   \
 	blk_add_trace_msg(q, "%s():" fmt , __func__, ##args)
@@ -879,7 +879,7 @@ static enum row_queue_prio row_get_queue_prio(struct request *rq,
 	const int data_dir = rq_data_dir(rq);
 	const bool is_sync = rq_is_sync(rq);
 	enum row_queue_prio q_type = ROWQ_MAX_PRIO;
-	int ioprio_class = IOPRIO_PRIO_CLASS(rq->elv.icq->ioc->ioprio);
+	int ioprio_class = IOPRIO_PRIO_CLASS(rq->ioprio);
 
 	switch (ioprio_class) {
 	case IOPRIO_CLASS_RT:
@@ -933,7 +933,7 @@ row_set_request(struct request_queue *q, struct request *rq, gfp_t gfp_mask)
 	unsigned long flags;
 
 	spin_lock_irqsave(q->queue_lock, flags);
-	rq->elv.priv[0] =
+	rq->elevator_private[0] =
 		(void *)(&rd->row_queues[row_get_queue_prio(rq, rd)]);
 	spin_unlock_irqrestore(q->queue_lock, flags);
 
@@ -1063,8 +1063,6 @@ static struct elevator_type iosched_row = {
 		.elevator_init_fn		= row_init_queue,
 		.elevator_exit_fn		= row_exit_queue,
 	},
-	.icq_size = sizeof(struct io_cq),
-	.icq_align = __alignof__(struct io_cq),
 	.elevator_attrs = row_attrs,
 	.elevator_name = "row",
 	.elevator_owner = THIS_MODULE,
@@ -1086,3 +1084,4 @@ module_exit(row_exit);
 
 MODULE_LICENSE("GPLv2");
 MODULE_DESCRIPTION("Read Over Write IO scheduler");
+

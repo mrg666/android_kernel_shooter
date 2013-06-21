@@ -87,11 +87,8 @@ int smp_call_function_any(const struct cpumask *mask,
 #ifdef CONFIG_USE_GENERIC_SMP_HELPERS
 void __init call_function_init(void);
 void generic_smp_call_function_single_interrupt(void);
-void generic_smp_call_function_interrupt(void);
-void ipi_call_lock(void);
-void ipi_call_unlock(void);
-void ipi_call_lock_irq(void);
-void ipi_call_unlock_irq(void);
+#define generic_smp_call_function_interrupt \
+	generic_smp_call_function_single_interrupt
 #else
 static inline void call_function_init(void) { }
 #endif
@@ -107,6 +104,15 @@ int on_each_cpu(smp_call_func_t func, void *info, int wait);
  */
 void on_each_cpu_mask(const struct cpumask *mask, smp_call_func_t func,
 		void *info, bool wait);
+
+/*
+ * Call a function on each processor for which the supplied function
+ * cond_func returns a positive value. This may include the local
+ * processor.
+ */
+void on_each_cpu_cond(bool (*cond_func)(int cpu, void *info),
+		smp_call_func_t func, void *info, bool wait,
+		gfp_t gfp_flags);
 
 /*
  * Mark the boot cpu "online" so that it can call console drivers in
@@ -152,6 +158,21 @@ static inline int up_smp_call_function(smp_call_func_t func, void *info)
 			(func)(info);			\
 			local_irq_enable();		\
 		}					\
+	} while (0)
+/*
+ * Preemption is disabled here to make sure the cond_func is called under the
+ * same condtions in UP and SMP.
+ */
+#define on_each_cpu_cond(cond_func, func, info, wait, gfp_flags)\
+	do {							\
+		void *__info = (info);				\
+		preempt_disable();				\
+		if ((cond_func)(0, __info)) {			\
+			local_irq_disable();			\
+			(func)(__info);				\
+			local_irq_enable();			\
+		}						\
+		preempt_enable();				\
 	} while (0)
 
 static inline void smp_send_reschedule(int cpu) { }

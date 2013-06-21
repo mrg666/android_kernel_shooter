@@ -747,10 +747,9 @@ static struct request *get_request(struct request_queue *q, int rw_flags,
 			if (!blk_queue_full(q, is_sync)) {
 				ioc_set_batching(q, ioc);
 				blk_set_queue_full(q, is_sync);
-			}
-
-			else {
-                if (may_queue != ELV_MQUEUE_MUST && !ioc_batching(q, ioc)) {
+			} else {
+				if (may_queue != ELV_MQUEUE_MUST
+						&& !ioc_batching(q, ioc)) {
 					/*
 					 * The queue is full and the allocating
 					 * process is not a "batcher", and not
@@ -1034,7 +1033,6 @@ bool blk_reinsert_req_sup(struct request_queue *q)
 	return q->elevator->type->ops.elevator_reinsert_req_fn ? true : false;
 }
 EXPORT_SYMBOL(blk_reinsert_req_sup);
-
 
 static void add_acct_request(struct request_queue *q, struct request *rq,
 			     int where)
@@ -1542,12 +1540,9 @@ static inline void __generic_make_request(struct bio *bio)
 {
 	struct request_queue *q;
 	sector_t old_sector;
-	int ret, nr_sectors = 0;
+	int ret, nr_sectors = bio_sectors(bio);
 	dev_t old_dev;
 	int err = -EIO;
-
-	if (bio)
-		nr_sectors = bio_sectors(bio);
 
 	might_sleep();
 
@@ -1577,7 +1572,7 @@ static inline void __generic_make_request(struct bio *bio)
 			goto end_io;
 		}
 
-		if (unlikely(!(bio->bi_rw & REQ_DISCARD) &&
+		if (unlikely(!(bio->bi_rw & (REQ_DISCARD | REQ_SANITIZE)) &&
 			     nr_sectors > queue_max_hw_sectors(q))) {
 			printk(KERN_ERR "bio too big device %s (%u > %u)\n",
 			       bdevname(bio->bi_bdev, b),
@@ -1627,6 +1622,14 @@ static inline void __generic_make_request(struct bio *bio)
 		    (!blk_queue_discard(q) ||
 		     ((bio->bi_rw & REQ_SECURE) &&
 		      !blk_queue_secdiscard(q)))) {
+			err = -EOPNOTSUPP;
+			goto end_io;
+		}
+
+		if ((bio->bi_rw & REQ_SANITIZE) &&
+		    (!blk_queue_sanitize(q))) {
+			pr_info("%s - got a SANITIZE request but the queue "
+			       "doesn't support sanitize requests", __func__);
 			err = -EOPNOTSUPP;
 			goto end_io;
 		}
@@ -1721,7 +1724,8 @@ void submit_bio(int rw, struct bio *bio)
 	 * If it's a regular read/write or a barrier with data attached,
 	 * go through the normal accounting stuff before submission.
 	 */
-	if (bio_has_data(bio) && !(rw & REQ_DISCARD)) {
+	if (bio_has_data(bio) &&
+	    (!(rw & (REQ_DISCARD | REQ_SANITIZE)))) {
 		if (rw & WRITE) {
 			count_vm_events(PGPGOUT, count);
 		} else {
@@ -1767,7 +1771,7 @@ EXPORT_SYMBOL(submit_bio);
  */
 int blk_rq_check_limits(struct request_queue *q, struct request *rq)
 {
-	if (rq->cmd_flags & REQ_DISCARD)
+	if (rq->cmd_flags & (REQ_DISCARD | REQ_SANITIZE))
 		return 0;
 
 	if (blk_rq_sectors(rq) > queue_max_sectors(q) ||

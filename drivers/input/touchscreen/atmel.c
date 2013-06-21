@@ -1221,19 +1221,19 @@ static irqreturn_t atmel_irq_thread(int irq, void *ptr)
 	struct atmel_ts_data *ts = ptr;
 	uint8_t data[7];
 	int8_t report_type;
-	uint8_t loop_i, loop_j, msg_byte_num = 7;
+	// uint8_t loop_i, loop_j, msg_byte_num = 7;
 
 	memset(data, 0x0, sizeof(data));
 
 	ret = i2c_atmel_read(ts->client, get_object_address(ts,
 		GEN_MESSAGEPROCESSOR_T5), data, 7);
 
-	if (ts->debug_log_level & 0x1) {
+	/* if (ts->debug_log_level & 0x1) {
 		printk(KERN_INFO "[TP]");
 		for (loop_i = 0; loop_i < 7; loop_i++)
 			printk(KERN_INFO "0x%2.2X ", data[loop_i]);
 		printk("\n");
-	}
+	} */
 
 	if (ts->id->version >= 0x15) {
 		report_type = data[MSG_RID] - ts->finger_type;
@@ -1253,33 +1253,29 @@ static irqreturn_t atmel_irq_thread(int irq, void *ptr)
 							msecs_to_jiffies(SAFE_TIMEOUT);
 					}
 				}
-				printk(KERN_INFO "[TP]");
-				msg_byte_num = 5;
+				/* printk(KERN_INFO "[TP]");
+				msg_byte_num = 5; */
 			} else if (data[MSG_RID] == get_rid(ts, PROCI_GRIPFACESUPPRESSION_T20)) {
 				if (ts->calibration_confirm < 2 && ts->id->version == 0x16)
 					check_calibration(ts);
 				ts->face_suppression = data[T20_MSG_STATUS];
-				printk(KERN_INFO "[TP]Touch Face suppression %s: ",
+				printk(KERN_INFO "[TP]Touch Face suppression %s: \n",
 					ts->face_suppression ? "Active" : "Inactive");
-				msg_byte_num = 2;
+				// msg_byte_num = 2;
 			} else if (data[MSG_RID] == get_rid(ts, PROCG_NOISESUPPRESSION_T22)) {
-				if (data[T22_MSG_STATUS] == T22_MSG_STATUS_GCAFCHG) { /* reduce message print */
-					printk(KERN_INFO "[TP]Touch Noise suppression: ");
-					msg_byte_num = 4;
-				} else {
-					printk(KERN_INFO "[TP]Touch Noise suppression: ");
-					msg_byte_num = 4;
+				if (data[T22_MSG_STATUS] != T22_MSG_STATUS_GCAFCHG) /* reduce message print */
 					msg_process_noisesuppression(ts, data);
-				}
+				printk(KERN_INFO "[TP]Touch Noise suppression: \n");
+				// msg_byte_num = 4;
 			} else
-				printk(KERN_INFO "[TP]Touch Unhandled: ");
+				printk(KERN_INFO "[TP]Touch Unhandled: \n");
 
-			if (data[MSG_RID] != 0xFF) {
+			/* if (data[MSG_RID] != 0xFF) {
 				for (loop_j = 0; loop_j < msg_byte_num; loop_j++)
 					printk("0x%2.2X ", data[loop_j]);
 				if (msg_byte_num)
 					printk("\n");
-			}
+			} */
 			return IRQ_HANDLED;
 		}
 
@@ -1786,9 +1782,9 @@ static int atmel_ts_probe(struct i2c_client *client,
 		ret = ts->power(2);
 #endif
 
-	printk(KERN_INFO
+	/* printk(KERN_INFO
 		"[TP]0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X\n",
-		data[0], data[1], data[2], data[3], data[4], data[5], data[6]);
+		data[0], data[1], data[2], data[3], data[4], data[5], data[6]); */
 
 	if (data[MSG_RID] == 0x01 &&
 		(data[T6_MSG_STATUS] & (T6_MSG_STATUS_SIGERR|T6_MSG_STATUS_COMSERR))) {
@@ -1801,9 +1797,9 @@ static int atmel_ts_probe(struct i2c_client *client,
 				break;
 			}
 			ret = i2c_transfer(client->adapter, msg, 1);
-			printk(KERN_INFO
+			/* printk(KERN_INFO
 				"[TP]0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X\n",
-				data[0], data[1], data[2], data[3], data[4], data[5], data[6]);
+				data[0], data[1], data[2], data[3], data[4], data[5], data[6]); */
 			msleep(10);
 		}
 	}
@@ -2129,9 +2125,9 @@ static int atmel_ts_probe(struct i2c_client *client,
 
 			i2c_atmel_read(client,
 				get_object_address(ts, GEN_MESSAGEPROCESSOR_T5), data, 7);
-			printk(KERN_INFO
+			/* printk(KERN_INFO
 				"[TP]0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X 0x%2.2X\n",
-				data[0], data[1], data[2], data[3], data[4], data[5], data[6]);
+				data[0], data[1], data[2], data[3], data[4], data[5], data[6]); */
 
 			ret = i2c_atmel_write_byte_data(client,
 						get_object_address(ts, GEN_COMMANDPROCESSOR_T6) +

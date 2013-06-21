@@ -88,6 +88,12 @@ int elv_rq_merge_ok(struct request *rq, struct bio *bio)
 		return 0;
 
 	/*
+	 * Don't merge sanitize requests
+	 */
+	if ((bio->bi_rw & REQ_SANITIZE) != (rq->bio->bi_rw & REQ_SANITIZE))
+		return 0;
+
+	/*
 	 * different data direction or already started, don't merge
 	 */
 	if (bio_data_dir(bio) != rq_data_dir(rq))
@@ -418,7 +424,6 @@ void elv_dispatch_sort(struct request_queue *q, struct request *rq)
 
 	boundary = q->end_sector;
 	stop_flags = REQ_SOFTBARRIER | REQ_STARTED;
-
 	list_for_each_prev(entry, &q->queue_head) {
 		struct request *pos = list_entry_rq(entry);
 
@@ -646,9 +651,9 @@ int elv_reinsert_request(struct request_queue *q, struct request *rq)
 void elv_drain_elevator(struct request_queue *q)
 {
 	static int printed;
-	
+
 	lockdep_assert_held(q->queue_lock);
-	
+
 	while (q->elevator->type->ops.elevator_dispatch_fn(q, 1))
 		;
 	if (q->nr_sorted && printed++ < 10) {
@@ -686,7 +691,7 @@ void __elv_add_request(struct request_queue *q, struct request *rq, int where)
 	if (rq->cmd_flags & REQ_SOFTBARRIER) {
 		/* barriers are scheduling boundary, update end_sector */
 		if (rq->cmd_type == REQ_TYPE_FS ||
-		    (rq->cmd_flags & REQ_DISCARD)) {
+		    (rq->cmd_flags & (REQ_DISCARD | REQ_SANITIZE))) {
 			q->end_sector = rq_end_sector(rq);
 			q->boundary_rq = rq;
 		}
@@ -697,10 +702,6 @@ void __elv_add_request(struct request_queue *q, struct request *rq, int where)
 
 	switch (where) {
 	case ELEVATOR_INSERT_REQUEUE:
-		rq->cmd_flags |= REQ_SOFTBARRIER;
-		list_add(&rq->queuelist, &q->queue_head);
-		break;
-
 	case ELEVATOR_INSERT_FRONT:
 		rq->cmd_flags |= REQ_SOFTBARRIER;
 		list_add(&rq->queuelist, &q->queue_head);

@@ -226,12 +226,14 @@ static int set_enabled(const char *val, const struct kernel_param *kp)
 	int ret = 0;
 
 	ret = param_set_bool(val, kp);
-	if (!enabled)
+	if (enabled) {
+		schedule_delayed_work(&check_temp_work,
+			msecs_to_jiffies(msm_thermal_tuners_ins.check_interval_ms));
+		pr_info("msm_thermal: enabled = %d\n", enabled);
+	} else {
 		disable_msm_thermal();
-	else
-		pr_info("msm_thermal: no action for enabled = %d\n", enabled);
-
-	pr_info("msm_thermal: enabled = %d\n", enabled);
+		pr_info("msm_thermal: disabled = %d\n", enabled);
+	}	
 
 	return ret;
 }
@@ -451,9 +453,10 @@ static int __init msm_thermal_init(void)
 	if (msm_thermal_kobject) {
 		rc = sysfs_create_group(msm_thermal_kobject,
 							&msm_thermal_attr_group);
-		if (rc) {
+		if (rc) 
 			pr_warn("msm_thermal: sysfs: ERROR, could not create sysfs group");
-		}
+		else
+			pr_warn("msm_thermal: initialized");
 	} else
 		pr_warn("msm_thermal: sysfs: ERROR, could not create sysfs kobj");
 

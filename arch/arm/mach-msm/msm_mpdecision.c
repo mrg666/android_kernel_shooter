@@ -95,7 +95,7 @@ static struct msm_mpdec_tuners {
 	.scroff_single_core = true,
 	.idle_freq = MSM_MPDEC_IDLE_FREQ,
 	.max_cpus = CONFIG_NR_CPUS,
-	.min_cpus = 2,
+	.min_cpus = 1,
 };
 
 static unsigned int NwNs_Threshold[4] = {35, 0, 0, 5};
@@ -104,7 +104,7 @@ static unsigned int TwTs_Threshold[4] = {250, 0, 0, 250};
 extern unsigned int get_rq_info(void);
 extern unsigned long acpuclk_get_rate(int);
 
-unsigned int state = MSM_MPDEC_IDLE;
+unsigned int state = MSM_MPDEC_DISABLED;
 bool was_paused = false;
 static cputime64_t mpdec_paused_until = 0;
 

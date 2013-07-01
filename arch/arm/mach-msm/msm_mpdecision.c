@@ -112,18 +112,22 @@ static unsigned long get_rate(int cpu) {
 	return acpuclk_get_rate(cpu);
 }
 
+static void mpdec_pause(int cpu) {
+	pr_info(MPDEC_TAG"CPU[%d] bypassed mpdecision! | pausing [%d]ms\n",
+		cpu, msm_mpdec_tuners_ins.pause);
+	mpdec_paused_until = ktime_to_ms(ktime_get()) + msm_mpdec_tuners_ins.pause;
+	was_paused = true;
+}
+
 static int get_slowest_cpu(void) {
-	int i, cpu = 0;
-	unsigned long rate, slow_rate = 0;
+	int i, cpu = 1;
+	unsigned long rate, slow_rate = 999999999;
 
 	for (i = 1; i < CONFIG_NR_CPUS; i++) {
 		if (!cpu_online(i))
 			continue;
 		rate = get_rate(i);
-		if (slow_rate == 0)
-			slow_rate = rate;
-
-		if ((rate <= slow_rate) && (slow_rate != 0)) {
+		if (rate < slow_rate) {
 			cpu = i;
 			slow_rate = rate;
 		}
@@ -133,16 +137,14 @@ static int get_slowest_cpu(void) {
 }
 
 static unsigned long get_slowest_cpu_rate(void) {
-	int i = 0;
-	unsigned long rate, slow_rate = 0;
+	int cpu;
+	unsigned long rate, slow_rate = 999999999;
 
-	for (i = 0; i < CONFIG_NR_CPUS; i++) {
-		if (!cpu_online(i))
+	for (cpu = 0; cpu < CONFIG_NR_CPUS; cpu++) {
+		if (!cpu_online(cpu))
 			continue;
-		rate = get_rate(i);
-		if ((rate < slow_rate) && (slow_rate != 0))
-			slow_rate = rate;
-		if (slow_rate == 0)
+		rate = get_rate(cpu);
+		if (rate < slow_rate) 
 			slow_rate = rate;
 	}
 
@@ -294,31 +296,17 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 		break;
 	case MSM_MPDEC_DOWN:
 		cpu = get_slowest_cpu();
-		if (cpu < nr_cpu_ids) {
-			if (per_cpu(msm_mpdec_cpudata, cpu).online == true) {
-				if (!mpdec_cpu_down(cpu)) {
-					pr_info(MPDEC_TAG"CPU[%d] bypassed mpdecision! | pausing [%d]ms\n",
-						cpu, msm_mpdec_tuners_ins.pause);
-					mpdec_paused_until = ktime_to_ms(ktime_get()) + 
-						msm_mpdec_tuners_ins.pause;
-					was_paused = true;
-				}
-			}
-		}
+		if (cpu < nr_cpu_ids)
+			if (per_cpu(msm_mpdec_cpudata, cpu).online == true)
+				if (!mpdec_cpu_down(cpu))
+					mpdec_pause(cpu);
 		break;
 	case MSM_MPDEC_UP:
 		cpu = cpumask_next_zero(0, cpu_online_mask);
-		if (cpu < nr_cpu_ids) {
-			if (per_cpu(msm_mpdec_cpudata, cpu).online == false) {
-				if (!mpdec_cpu_up(cpu)) {
-					pr_info(MPDEC_TAG"CPU[%d] bypassed mpdecision! | pausing [%d]ms\n",
-						cpu, msm_mpdec_tuners_ins.pause);
-					mpdec_paused_until = ktime_to_ms(ktime_get()) + 
-						msm_mpdec_tuners_ins.pause;
-					was_paused = true;
-				}
-			}
-		}
+		if (cpu < nr_cpu_ids)
+			if (per_cpu(msm_mpdec_cpudata, cpu).online == false)
+				if (!mpdec_cpu_up(cpu))
+					mpdec_pause(cpu);
 		break;
 	default:
 		pr_err(MPDEC_TAG"%s: invalid mpdec hotplug state %d\n",

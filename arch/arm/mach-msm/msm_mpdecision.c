@@ -221,16 +221,16 @@ static int mp_decision(void) {
 
 	if (nr_cpu_online) {
 		index = (nr_cpu_online - 1) * 2;
-		if (nr_cpu_online < msm_mpdec_tuners_ins.max_cpus) {
-			if ((rq_depth >= NwNs_Threshold[index]) &&
-			    (total_time >= TwTs_Threshold[index])) {
+		if ((nr_cpu_online < msm_mpdec_tuners_ins.max_cpus) && 
+		    (rq_depth >= NwNs_Threshold[index])) {
+			if (total_time >= TwTs_Threshold[index]) {
 				new_state = MSM_MPDEC_UP;
 				if (get_slowest_cpu_rate() <= msm_mpdec_tuners_ins.idle_freq)
 					new_state = MSM_MPDEC_IDLE;
 			}
-		} else if (nr_cpu_online > msm_mpdec_tuners_ins.min_cpus) {
-			if ((rq_depth <= NwNs_Threshold[index+1]) &&
-			    (total_time >= TwTs_Threshold[index+1])) {
+		} else if ((nr_cpu_online > msm_mpdec_tuners_ins.min_cpus) &&
+			   (rq_depth <= NwNs_Threshold[index+1])) {
+			if (total_time >= TwTs_Threshold[index+1]) {
 				new_state = MSM_MPDEC_DOWN;
 				if (get_slowest_cpu_rate() > msm_mpdec_tuners_ins.idle_freq)
 					new_state = MSM_MPDEC_IDLE;

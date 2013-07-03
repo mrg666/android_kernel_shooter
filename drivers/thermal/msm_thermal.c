@@ -31,6 +31,12 @@
 
 static int enabled;
 
+//Throttling indicator, 0=not throttled, 1=throttled
+static int thermal_throttled = 0;
+
+//Safe the cpu max freq before throttling
+static int pre_throttled_max = 0;
+
 static struct delayed_work check_temp_work;
 
 static struct msm_thermal_tuners {
@@ -93,15 +99,29 @@ static void check_temp(struct work_struct *work)
 		if (temp >= msm_thermal_tuners_ins.allowed_max_high) {
 			if (cpu_policy->max > msm_thermal_tuners_ins.allowed_max_freq) {
 				update_policy = 1;
+				/* save pre-throttled max freq value */
+				pre_throttled_max = cpu_policy->max;
 				max_freq = msm_thermal_tuners_ins.allowed_max_freq;
+				thermal_throttled = 1;
+				pr_warn("msm_thermal: Thermal Throttled temp: %lu\n", temp);
 			} else {
 				pr_debug("msm_thermal: policy max for cpu %d "
 					 "already < allowed_max_freq\n", cpu);
 			}
-		} else if (temp < msm_thermal_tuners_ins.allowed_max_low) {
+		} else if ((temp < msm_thermal_tuners_ins.allowed_max_low) && thermal_throttled) {
 			if (cpu_policy->max < cpu_policy->cpuinfo.max_freq) {
-				max_freq = cpu_policy->cpuinfo.max_freq;
+				if (pre_throttled_max != 0)
+					max_freq = pre_throttled_max;
+				else {
+					max_freq = cpu_policy->
+						cpuinfo.max_freq;
+					pr_warn("msm_thermal: ERROR! pre_throttled_max=0, falling back to %u\n", max_freq);
+				}
 				update_policy = 1;
+				/* wait until 2nd core is unthrottled */
+				if (cpu == 1)
+					thermal_throttled = 0;
+				pr_warn("msm_thermal: Thermal Throttling Ended! temp: %lu\n", temp);
 			} else {
 				pr_debug("msm_thermal: policy max for cpu %d "
 					 "already at max allowed\n", cpu);

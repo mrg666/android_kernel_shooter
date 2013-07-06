@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Linux/arm 3.0.83 Kernel Configuration
+# Linux/arm 3.0.85 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -665,7 +665,6 @@ CONFIG_WAKELOCK=y
 CONFIG_WAKELOCK_STAT=y
 CONFIG_USER_WAKELOCK=y
 CONFIG_EARLYSUSPEND=y
-# CONFIG_NO_SUSPEND is not set
 # CONFIG_NO_USER_SPACE_SCREEN_ACCESS_CONTROL is not set
 CONFIG_FB_EARLYSUSPEND=y
 CONFIG_PM_SLEEP=y
@@ -1205,6 +1204,8 @@ CONFIG_BCMDHD=m
 CONFIG_BCMDHD_FW_PATH="/system/etc/firmware/fw_bcmdhd.bin"
 CONFIG_BCMDHD_NVRAM_PATH="/proc/calibration"
 CONFIG_DHD_USE_STATIC_BUF=y
+# CONFIG_DHD_USE_SCHED_SCAN is not set
+# CONFIG_DHD_ENABLE_P2P is not set
 # CONFIG_HOSTAP is not set
 # CONFIG_IWM is not set
 # CONFIG_LIBERTAS is not set

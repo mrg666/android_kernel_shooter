@@ -92,7 +92,7 @@ static struct msm_mpdec_tuners {
 static unsigned int NwNs_Threshold[4] = {35, 0, 0, 5};
 static unsigned int TwTs_Threshold[4] = {250, 0, 0, 250};
 
-extern unsigned int get_rq_info(void);
+extern unsigned int get_rq_avg(void);
 
 bool was_paused = false;
 static cputime64_t mpdec_paused_until = 0;
@@ -201,7 +201,7 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 		}
 	}
 
-	rq_depth = get_rq_info();
+	rq_depth = get_rq_avg();
 	nr_cpu_online = num_online_cpus();
 	index = (nr_cpu_online - 1) * 2;
 

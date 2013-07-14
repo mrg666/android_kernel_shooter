@@ -120,7 +120,6 @@ static int get_slowest_cpu(void) {
 			slow_rate = rate;
 		}
 	}
-
 	return cpu;
 }
 
@@ -135,7 +134,6 @@ static unsigned long get_slowest_cpu_rate(void) {
 		if (rate < slow_rate) 
 			slow_rate = rate;
 	}
-
 	return slow_rate;
 }
 
@@ -231,8 +229,7 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 				}
 			}
 		}
-	}
-	
+	}	
 out:
 	last_time = current_time;
 	if (enabled)
@@ -297,7 +294,6 @@ static int set_enabled(const char *val, const struct kernel_param *kp) {
 			mpdec_cpu_up(cpu);
 		pr_info(MPDEC_TAG"msm_mpdecision disabled\n");
 	}
-
 	return ret;
 }
 
@@ -399,7 +395,6 @@ static ssize_t store_delay(struct kobject *a, struct attribute *b,
 		return -EINVAL;
 
 	msm_mpdec_tuners_ins.delay = input;
-
 	return count;
 }
 
@@ -413,7 +408,6 @@ static ssize_t store_pause(struct kobject *a, struct attribute *b,
 		return -EINVAL;
 
 	msm_mpdec_tuners_ins.pause = input;
-
 	return count;
 }
 
@@ -427,7 +421,6 @@ static ssize_t store_idle_freq(struct kobject *a, struct attribute *b,
 		return -EINVAL;
 
 	msm_mpdec_tuners_ins.idle_freq = input;
-
 	return count;
 }
 
@@ -443,8 +436,7 @@ static ssize_t store_scroff_single_core(struct kobject *a, struct attribute *b,
 	if ((input < 0) || (input > 1))
 		return -EINVAL;
 
-	msm_mpdec_tuners_ins.scroff_single_core = input;
-	
+	msm_mpdec_tuners_ins.scroff_single_core = input;	
 	return count;
 }
 
@@ -452,8 +444,8 @@ static ssize_t store_max_cpus(struct kobject *a, struct attribute *b,
 				const char *buf, size_t count) {
 	unsigned int input;
 	int ret;
-	ret = sscanf(buf, "%u", &input);
 
+	ret = sscanf(buf, "%u", &input);
 	if (ret != 1)
 		return -EINVAL;
 
@@ -462,7 +454,6 @@ static ssize_t store_max_cpus(struct kobject *a, struct attribute *b,
 		return -EINVAL;
 
 	msm_mpdec_tuners_ins.max_cpus = input;
-
 	return count;
 }
 
@@ -480,7 +471,6 @@ static ssize_t store_min_cpus(struct kobject *a, struct attribute *b,
 		return -EINVAL;
 	
 	msm_mpdec_tuners_ins.min_cpus = input;
-
 	return count;
 }
 
@@ -530,7 +520,6 @@ static ssize_t show_time_cpus_on(struct kobject *a, struct attribute *b,
 		} else
 			len += sprintf(buf + len, "%i %llu\n", cpu, per_cpu(msm_mpdec_cpudata, cpu).on_time_total);
 	}
-
 	return len;
 }
 define_one_global_ro(time_cpus_on);
@@ -543,7 +532,6 @@ static ssize_t show_times_cpus_hotplugged(struct kobject *a, struct attribute *b
 	for_each_possible_cpu(cpu) {
 		len += sprintf(buf + len, "%i %llu\n", cpu, per_cpu(msm_mpdec_cpudata, cpu).times_cpu_hotplugged);
 	}
-
 	return len;
 }
 define_one_global_ro(times_cpus_hotplugged);
@@ -556,7 +544,6 @@ static ssize_t show_times_cpus_unplugged(struct kobject *a, struct attribute *b,
 	for_each_possible_cpu(cpu) {
 		len += sprintf(buf + len, "%i %llu\n", cpu, per_cpu(msm_mpdec_cpudata, cpu).times_cpu_unplugged);
 	}
-
 	return len;
 }
 define_one_global_ro(times_cpus_unplugged);
@@ -615,7 +602,6 @@ static int __init msm_mpdec_init(void) {
 		pr_warn(MPDEC_TAG"sysfs: ERROR, could not create sysfs kobj");
 
 	pr_info(MPDEC_TAG"%s init complete.", __func__);
-
 	return err;
 }
 late_initcall(msm_mpdec_init);

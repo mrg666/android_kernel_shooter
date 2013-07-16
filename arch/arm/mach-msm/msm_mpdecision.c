@@ -35,8 +35,6 @@
 #include <linux/delay.h>
 #include "acpuclock.h"
 
-#define DEBUG 0
-
 #define MPDEC_TAG                       "[MPDEC]: "
 #define MSM_MPDEC_STARTDELAY            20000
 #define MSM_MPDEC_DELAY                 100
@@ -62,10 +60,7 @@ __ATTR(_name, 0644, show_##_name, store_##_name)
 struct msm_mpdec_cpudata_t {
 	struct mutex hotplug_mutex;
 	int online;
-	cputime64_t on_time;
-	cputime64_t on_time_total;
 	long long unsigned int times_cpu_hotplugged;
-	long long unsigned int times_cpu_unplugged;
 };
 static DEFINE_PER_CPU(struct msm_mpdec_cpudata_t, msm_mpdec_cpudata);
 
@@ -112,12 +107,12 @@ static int get_slowest_cpu(void) {
 	unsigned long rate, slow_rate = 999999999;
 
 	for (i = 1; i < nr_cpu_ids; i++) {
-		if (!cpu_online(i))
-			continue;
-		rate = acpuclk_get_rate(i);
-		if (rate < slow_rate) {
-			cpu = i;
-			slow_rate = rate;
+		if (cpu_online(i)) {
+			rate = acpuclk_get_rate(i);
+			if (rate < slow_rate) {
+				cpu = i;
+				slow_rate = rate;
+			}
 		}
 	}
 	return cpu;
@@ -127,9 +122,7 @@ static unsigned long get_slowest_cpu_rate(void) {
 	int cpu;
 	unsigned long rate, slow_rate = 999999999;
 
-	for (cpu = 0; cpu < nr_cpu_ids; cpu++) {
-		if (!cpu_online(cpu))
-			continue;
+	for_each_online_cpu(cpu) {
 		rate = acpuclk_get_rate(cpu);
 		if (rate < slow_rate) 
 			slow_rate = rate;
@@ -138,7 +131,6 @@ static unsigned long get_slowest_cpu_rate(void) {
 }
 
 static bool mpdec_cpu_down(int cpu) {
-	cputime64_t on_time = 0;
 	bool ret;
 	
 	ret = cpu_online(cpu);
@@ -146,12 +138,8 @@ static bool mpdec_cpu_down(int cpu) {
 		mutex_lock(&per_cpu(msm_mpdec_cpudata, cpu).hotplug_mutex);
 		cpu_down(cpu);
 		per_cpu(msm_mpdec_cpudata, cpu).online = false;
-		on_time = ktime_to_ms(ktime_get()) - 
-			per_cpu(msm_mpdec_cpudata, cpu).on_time;
-		per_cpu(msm_mpdec_cpudata, cpu).on_time_total += on_time;
-		per_cpu(msm_mpdec_cpudata, cpu).times_cpu_unplugged += 1;
-		pr_info(MPDEC_TAG"CPU[%d] on->off | Mask=[%d%d] | time online: %llu\n",
-		cpu, cpu_online(0), cpu_online(1), on_time);
+		pr_info(MPDEC_TAG"CPU[%d] on->off | Mask=[%d%d]\n",
+			cpu, cpu_online(0), cpu_online(1));
 		mutex_unlock(&per_cpu(msm_mpdec_cpudata, cpu).hotplug_mutex);
 	}
 	return ret;
@@ -164,8 +152,7 @@ static bool mpdec_cpu_up(int cpu) {
 	if (ret) {
 		mutex_lock(&per_cpu(msm_mpdec_cpudata, cpu).hotplug_mutex);
 		cpu_up(cpu);
-		per_cpu(msm_mpdec_cpudata, cpu).online = true;
-		per_cpu(msm_mpdec_cpudata, cpu).on_time = ktime_to_ms(ktime_get());
+		per_cpu(msm_mpdec_cpudata, cpu).online = true;		
 		per_cpu(msm_mpdec_cpudata, cpu).times_cpu_hotplugged += 1;
 		pr_info(MPDEC_TAG"CPU[%d] off->on | Mask=[%d%d]\n",
 			cpu, cpu_online(0), cpu_online(1));
@@ -506,52 +493,21 @@ static struct attribute_group msm_mpdec_attr_group = {
 
 /********* STATS START *********/
 
-static ssize_t show_time_cpus_on(struct kobject *a, struct attribute *b,
-				char *buf) {
-	ssize_t len = 0;
-	int cpu = 0;
-
-	for_each_possible_cpu(cpu) {
-		if (cpu_online(cpu)) {
-			len += sprintf(buf + len, "%i %llu\n", cpu,
-				(per_cpu(msm_mpdec_cpudata, cpu).on_time_total +
-				(ktime_to_ms(ktime_get()) -
-				per_cpu(msm_mpdec_cpudata, cpu).on_time)));
-		} else
-			len += sprintf(buf + len, "%i %llu\n", cpu, per_cpu(msm_mpdec_cpudata, cpu).on_time_total);
-	}
-	return len;
-}
-define_one_global_ro(time_cpus_on);
-
 static ssize_t show_times_cpus_hotplugged(struct kobject *a, struct attribute *b,
 					char *buf) {
 	ssize_t len = 0;
 	int cpu = 0;
 
 	for_each_possible_cpu(cpu) {
-		len += sprintf(buf + len, "%i %llu\n", cpu, per_cpu(msm_mpdec_cpudata, cpu).times_cpu_hotplugged);
+		len += sprintf(buf + len, "%i %llu\n", cpu, 
+				per_cpu(msm_mpdec_cpudata, cpu).times_cpu_hotplugged);
 	}
 	return len;
 }
 define_one_global_ro(times_cpus_hotplugged);
 
-static ssize_t show_times_cpus_unplugged(struct kobject *a, struct attribute *b,
-					char *buf) {
-	ssize_t len = 0;
-	int cpu = 0;
-
-	for_each_possible_cpu(cpu) {
-		len += sprintf(buf + len, "%i %llu\n", cpu, per_cpu(msm_mpdec_cpudata, cpu).times_cpu_unplugged);
-	}
-	return len;
-}
-define_one_global_ro(times_cpus_unplugged);
-
 static struct attribute *msm_mpdec_stats_attributes[] = {
-	&time_cpus_on.attr,
 	&times_cpus_hotplugged.attr,
-	&times_cpus_unplugged.attr,
 	NULL
 };
 
@@ -564,16 +520,13 @@ static struct attribute_group msm_mpdec_stats_attr_group = {
 static int __init msm_mpdec_init(void) {
 	int cpu, rc, err = 0;
 
+	was_paused = true;
+	last_time = ktime_to_ms(ktime_get());
 	for_each_possible_cpu(cpu) {
 		mutex_init(&(per_cpu(msm_mpdec_cpudata, cpu).hotplug_mutex));
 		per_cpu(msm_mpdec_cpudata, cpu).online = true;
-		per_cpu(msm_mpdec_cpudata, cpu).on_time_total = 0;
-		per_cpu(msm_mpdec_cpudata, cpu).times_cpu_unplugged = 0;
 		per_cpu(msm_mpdec_cpudata, cpu).times_cpu_hotplugged = 0;
 	}
-
-	was_paused = true;
-	last_time = ktime_to_ms(ktime_get());
 
 	msm_mpdec_workq = alloc_workqueue("mpdec",
 					WQ_UNBOUND | WQ_RESCUER | WQ_FREEZABLE, 1);

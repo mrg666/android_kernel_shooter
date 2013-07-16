@@ -455,7 +455,7 @@ void arch_reset(char mode, const char *cmd)
 			msm_watchdog_suspend(NULL);
 			dump_stack();
 			show_state_filter(TASK_UNINTERRUPTIBLE);
-			print_workqueue();
+			// print_workqueue();
 			msm_watchdog_resume(NULL);
 		}
 		break;

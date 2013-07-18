@@ -52,8 +52,7 @@ static struct msm_thermal_tuners {
 };
 
 static int update_cpu_max_freq(struct cpufreq_policy *cpu_policy,
-			       int cpu, int max_freq)
-{
+			       int cpu, int max_freq) {
 	int ret = 0;
 
 	if (!cpu_policy)
@@ -71,8 +70,7 @@ static int update_cpu_max_freq(struct cpufreq_policy *cpu_policy,
 	return ret;
 }
 
-static void check_temp(struct work_struct *work)
-{
+static void check_temp(struct work_struct *work) {
 	struct cpufreq_policy *cpu_policy = NULL;
 	struct tsens_device tsens_dev;
 	unsigned long temp = 0;
@@ -108,20 +106,23 @@ static void check_temp(struct work_struct *work)
 				pr_debug("msm_thermal: policy max for cpu %d "
 					 "already < allowed_max_freq\n", cpu);
 			}
-		} else if ((temp < msm_thermal_tuners_ins.allowed_max_low) && thermal_throttled) {
+		} else if ((temp < msm_thermal_tuners_ins.allowed_max_low) && 
+			    thermal_throttled) {
 			if (cpu_policy->max < cpu_policy->cpuinfo.max_freq) {
 				if (pre_throttled_max != 0)
 					max_freq = pre_throttled_max;
 				else {
 					max_freq = cpu_policy->
 						cpuinfo.max_freq;
-					pr_warn("msm_thermal: ERROR! pre_throttled_max=0, falling back to %u\n", max_freq);
+					pr_warn("msm_thermal: ERROR! pre_throttled_max=0, "
+						"falling back to %u\n", max_freq);
 				}
 				update_policy = 1;
 				/* wait until 2nd core is unthrottled */
 				if (cpu == 1)
 					thermal_throttled = 0;
-				pr_warn("msm_thermal: Thermal Throttling Ended! temp: %lu\n", temp);
+				pr_warn("msm_thermal: Thermal Throttling Ended! "
+					"temp: %lu\n", temp);
 			} else {
 				pr_debug("msm_thermal: policy max for cpu %d "
 					 "already at max allowed\n", cpu);
@@ -140,8 +141,7 @@ reschedule:
 				msecs_to_jiffies(msm_thermal_tuners_ins.check_interval_ms));
 }
 
-static void disable_msm_thermal(void)
-{
+static void disable_msm_thermal(void) {
 	int cpu = 0;
 	struct cpufreq_policy *cpu_policy = NULL;
 
@@ -161,8 +161,7 @@ static void disable_msm_thermal(void)
 	}
 }
 
-static int set_enabled(const char *val, const struct kernel_param *kp)
-{
+static int set_enabled(const char *val, const struct kernel_param *kp) {
 	int ret = 0;
 
 	ret = param_set_bool(val, kp);
@@ -193,75 +192,30 @@ struct kobject *msm_thermal_kobject;
 static ssize_t show_##file_name						\
 (struct kobject *kobj, struct attribute *attr, char *buf)               \
 {									\
-	return sprintf(buf, "%u\n", msm_thermal_tuners_ins.object);				\
+	return sprintf(buf, "%u\n", msm_thermal_tuners_ins.object);	\
 }
-
 show_one(allowed_max_high, allowed_max_high);
 show_one(allowed_max_low, allowed_max_low);
 show_one(allowed_max_freq, allowed_max_freq);
 show_one(check_interval_ms, check_interval_ms);
 
-static ssize_t store_allowed_max_high(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_max_high = input;
-
-	return count;
-}
-
-static ssize_t store_allowed_max_low(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_max_low = input;
-
-	return count;
-}
-
-static ssize_t store_allowed_max_freq(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.allowed_max_freq = input;
-
-	return count;
-}
-
-static ssize_t store_check_interval_ms(struct kobject *a, struct attribute *b,
-				   const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_thermal_tuners_ins.check_interval_ms = input;
-
-	return count;
-}
-
-
-define_one_global_rw(allowed_max_high);
-define_one_global_rw(allowed_max_low);
-define_one_global_rw(allowed_max_freq);
-define_one_global_rw(check_interval_ms);
+#define store_one(file_name, object)					\
+static ssize_t store_##file_name					\
+(struct kobject *a, struct attribute *b, const char *buf, size_t count)	\
+{									\
+	unsigned int input;						\
+	int ret;							\
+	ret = sscanf(buf, "%u", &input);				\
+	if (ret != 1)							\
+		return -EINVAL;						\
+	msm_thermal_tuners_ins.object = input;				\
+	return count;							\
+}									\
+define_one_global_rw(file_name);
+store_one(allowed_max_high, allowed_max_high);
+store_one(allowed_max_low, allowed_max_low);
+store_one(allowed_max_freq, allowed_max_freq);
+store_one(check_interval_ms, check_interval_ms);
 
 static struct attribute *msm_thermal_attributes[] = {
 	&allowed_max_high.attr,
@@ -271,15 +225,13 @@ static struct attribute *msm_thermal_attributes[] = {
 	NULL
 };
 
-
 static struct attribute_group msm_thermal_attr_group = {
 	.attrs = msm_thermal_attributes,
 	.name = "conf",
 };
 /**************************** SYSFS END ****************************/
 
-static int __init msm_thermal_init(void)
-{
+static int __init msm_thermal_init(void) {
 	int rc, ret = 0;
 
 	enabled = 1;
@@ -301,4 +253,3 @@ static int __init msm_thermal_init(void)
 	return ret;
 }
 fs_initcall(msm_thermal_init);
-

@@ -34,12 +34,16 @@
 #include <linux/hrtimer.h>
 #include <linux/delay.h>
 #include "acpuclock.h"
+#include <linux/rq_stats.h>
 
-#define MPDEC_TAG                       "[MPDEC]: "
-#define MSM_MPDEC_STARTDELAY            20000
-#define MSM_MPDEC_DELAY                 100
-#define MSM_MPDEC_PAUSE                 10000
-#define MSM_MPDEC_IDLE_FREQ             384000
+#define DEFAULT_RQ_POLL_JIFFIES		1
+#define DEFAULT_DEF_TIMER_JIFFIES	5
+
+#define MPDEC_TAG			"[MPDEC]: "
+#define MSM_MPDEC_STARTDELAY		20000
+#define MSM_MPDEC_DELAY			100
+#define MSM_MPDEC_PAUSE			10000
+#define MSM_MPDEC_IDLE_FREQ		384000
 
 struct global_attr {
 	struct attribute attr;
@@ -87,13 +91,22 @@ static struct msm_mpdec_tuners {
 static unsigned int NwNs_Threshold[4] = {35, 0, 0, 5};
 static unsigned int TwTs_Threshold[4] = {250, 0, 0, 250};
 
-extern unsigned int get_rq_avg(void);
-
 bool was_paused = false;
 static cputime64_t mpdec_paused_until = 0;
 static cputime64_t total_time = 0;
 static cputime64_t last_time;
 static int enabled = 1;
+
+unsigned int get_rq_avg(void) {
+	unsigned long flags = 0;
+	unsigned int rq = 0;
+
+	spin_lock_irqsave(&rq_lock, flags);
+	rq = rq_info.rq_avg;
+	rq_info.rq_avg = 0;
+	spin_unlock_irqrestore(&rq_lock, flags);
+	return rq;
+}
 
 static void mpdec_pause(int cpu) {
 	pr_info(MPDEC_TAG"CPU[%d] bypassed mpdecision! | pausing [%d]ms\n",
@@ -161,11 +174,22 @@ static bool mpdec_cpu_up(int cpu) {
 	return ret;
 }
 
+static void rq_work_fn(struct work_struct *work) {
+	int64_t diff, now;
+
+	now = ktime_to_ns(ktime_get());
+	diff = now - rq_info.def_start_time;
+	do_div(diff, 1000 * 1000);
+	rq_info.def_interval = (unsigned int) diff;
+	rq_info.def_timer_jiffies = msecs_to_jiffies(rq_info.def_interval);
+	rq_info.def_start_time = now;
+}
+
 static void msm_mpdec_work_thread(struct work_struct *work) {
 	unsigned int cpu = nr_cpu_ids;
 	int nr_cpu_online;
 	int index;
-	unsigned int rq_depth;
+	unsigned int rq_avg;
 	cputime64_t current_time;
 
 	current_time = ktime_to_ms(ktime_get());
@@ -186,12 +210,12 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 		}
 	}
 
-	rq_depth = get_rq_avg();
+	rq_avg = get_rq_avg();
 	nr_cpu_online = num_online_cpus();
 	index = (nr_cpu_online - 1) * 2;
 
 	if ((nr_cpu_online < msm_mpdec_tuners_ins.max_cpus) && 
-	    (rq_depth >= NwNs_Threshold[index])) {
+	    (rq_avg >= NwNs_Threshold[index])) {
 		if (total_time >= TwTs_Threshold[index]) {
 			if (get_slowest_cpu_rate() > msm_mpdec_tuners_ins.idle_freq) {
 				cpu = cpumask_next_zero(0, cpu_online_mask);
@@ -204,7 +228,7 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 			} 
 		}
 	} else if ((nr_cpu_online > msm_mpdec_tuners_ins.min_cpus) &&
-		   (rq_depth <= NwNs_Threshold[index+1])) {
+		   (rq_avg <= NwNs_Threshold[index+1])) {
 		if (total_time >= TwTs_Threshold[index+1]) {
 			if (get_slowest_cpu_rate() <= msm_mpdec_tuners_ins.idle_freq) {
 				cpu = get_slowest_cpu();
@@ -291,7 +315,6 @@ static struct kernel_param_ops module_ops = {
 
 module_param_cb(enabled, &module_ops, &enabled, 0644);
 MODULE_PARM_DESC(enabled, "hotplug cpu cores based on demand");
-
 
 /**************************** SYSFS START ****************************/
 struct kobject *msm_mpdec_kobject;
@@ -519,6 +542,18 @@ static struct attribute_group msm_mpdec_stats_attr_group = {
 
 static int __init msm_mpdec_init(void) {
 	int cpu, rc, err = 0;
+
+	rq_wq = create_singlethread_workqueue("rq_stats");
+	BUG_ON(!rq_wq);
+	INIT_WORK(&rq_info.def_timer_work, rq_work_fn);
+	spin_lock_init(&rq_lock);
+	rq_info.rq_poll_jiffies = DEFAULT_RQ_POLL_JIFFIES;
+	rq_info.def_timer_jiffies = DEFAULT_DEF_TIMER_JIFFIES;
+	rq_info.def_start_time = ktime_to_ns(ktime_get());
+	rq_info.rq_poll_last_jiffy = 0;
+	rq_info.def_timer_last_jiffy = 0;
+	rq_info.hotplug_disabled = 0;
+	rq_info.init = 1;
 
 	was_paused = true;
 	last_time = ktime_to_ms(ktime_get());

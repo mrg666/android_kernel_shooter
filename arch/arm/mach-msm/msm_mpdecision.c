@@ -1,13 +1,13 @@
 /*
  * arch/arm/mach-msm/msm_mpdecision.c
  *
- * This program features:
- * -cpu auto-hotplug/unplug based on system load for MSM multicore cpus
- * -single core while screen is off
- * -extensive sysfs tuneables
- *
+ * hotplug cores of MSM multicore cpus based on demand and suspend
+ * 
+ * based on the msm_mpdecision code by
  * Copyright (c) 2012-2013, Dennis Rassmann <showp1984@gmail.com>
- * revised by mrg666, 2013, https://github.com/mrg666/android_kernel_shooter
+ *
+ * major revision:
+ * July 2013, https://github.com/mrg666/android_kernel_shooter
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,6 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #include <linux/earlysuspend.h>
@@ -115,6 +112,7 @@ static void mpdec_pause(int cpu) {
 	was_paused = true;
 }
 
+#if CONFIG_NR_CPUS > 2
 static int get_slowest_cpu(void) {
 	int i, cpu = 1;
 	unsigned long rate, slow_rate = 999999999;
@@ -130,6 +128,7 @@ static int get_slowest_cpu(void) {
 	}
 	return cpu;
 }
+#endif
 
 static unsigned long get_slowest_cpu_rate(void) {
 	int cpu;
@@ -186,7 +185,7 @@ static void rq_work_fn(struct work_struct *work) {
 }
 
 static void msm_mpdec_work_thread(struct work_struct *work) {
-	unsigned int cpu = nr_cpu_ids;
+	unsigned int cpu;
 	int nr_cpu_online;
 	int index;
 	unsigned int rq_avg;
@@ -210,6 +209,7 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 		}
 	}
 
+	cpu = 1;
 	rq_avg = get_rq_avg();
 	nr_cpu_online = num_online_cpus();
 	index = (nr_cpu_online - 1) * 2;
@@ -218,20 +218,24 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 	    (rq_avg >= NwNs_Threshold[index])) {
 		if (total_time >= TwTs_Threshold[index]) {
 			if (get_slowest_cpu_rate() > msm_mpdec_tuners_ins.idle_freq) {
+#if CONFIG_NR_CPUS > 2
 				cpu = cpumask_next_zero(0, cpu_online_mask);
+#endif
 				if (per_cpu(msm_mpdec_cpudata, cpu).online == false) {
 					if (mpdec_cpu_up(cpu))
 						total_time = 0;
 					else
 						mpdec_pause(cpu);
 				}
-			} 
+			}
 		}
 	} else if ((nr_cpu_online > msm_mpdec_tuners_ins.min_cpus) &&
 		   (rq_avg <= NwNs_Threshold[index+1])) {
 		if (total_time >= TwTs_Threshold[index+1]) {
 			if (get_slowest_cpu_rate() <= msm_mpdec_tuners_ins.idle_freq) {
+#if CONFIG_NR_CPUS > 2
 				cpu = get_slowest_cpu();
+#endif
 				if (per_cpu(msm_mpdec_cpudata, cpu).online == true) {
 					if (mpdec_cpu_down(cpu))
 						total_time = 0;
@@ -240,7 +244,7 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 				}
 			}
 		}
-	}	
+	}
 out:
 	last_time = current_time;
 	if (enabled)
@@ -250,11 +254,13 @@ out:
 }
 
 static void msm_mpdec_early_suspend(struct early_suspend *h) {
-	int cpu;
+	int cpu = 1;
 
 	/* unplug cpu cores */
 	if (msm_mpdec_tuners_ins.scroff_single_core)
+#if CONFIG_NR_CPUS > 2
 		for (cpu = 1; cpu < nr_cpu_ids; cpu++)
+#endif
 			mpdec_cpu_down(cpu);
 
 	/* suspend main work thread */
@@ -265,11 +271,13 @@ static void msm_mpdec_early_suspend(struct early_suspend *h) {
 }
 
 static void msm_mpdec_late_resume(struct early_suspend *h) {
-	int cpu;
+	int cpu = 1;
 
 	/* hotplug cpu cores */
 	if (msm_mpdec_tuners_ins.scroff_single_core)
+#if CONFIG_NR_CPUS > 2
 		for (cpu = 1; cpu < nr_cpu_ids; cpu++)
+#endif
 			mpdec_cpu_up(cpu);
 
 	/* resume main work thread */
@@ -291,7 +299,7 @@ static struct early_suspend msm_mpdec_early_suspend_handler = {
 
 static int set_enabled(const char *val, const struct kernel_param *kp) {
 	int ret = 0;
-	int cpu;
+	int cpu = 1;
 
 	ret = param_set_bool(val, kp);
 	if (enabled) {
@@ -301,7 +309,9 @@ static int set_enabled(const char *val, const struct kernel_param *kp) {
 		pr_info(MPDEC_TAG"msm_mpdecision enabled\n");
 	} else {
 		cancel_delayed_work_sync(&msm_mpdec_work);
+#if CONFIG_NR_CPUS > 2
 		for (cpu = 1; cpu < nr_cpu_ids; cpu++)
+#endif
 			mpdec_cpu_up(cpu);
 		pr_info(MPDEC_TAG"msm_mpdecision disabled\n");
 	}

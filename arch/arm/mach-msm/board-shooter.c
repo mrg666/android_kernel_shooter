@@ -1235,7 +1235,7 @@ static uint32_t camera_off_gpio_table_sp3d[] = {
 	GPIO_CFG(SHOOTER_CAM_I2C_SDA, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),/*i2c*/
 	GPIO_CFG(SHOOTER_CAM_I2C_SCL, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),/*i2c*/
 	GPIO_CFG(SHOOTER_SP3D_MCLK, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),/*MCLK*/
-	GPIO_CFG(106, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),/*sharp INT*/
+	GPIO_CFG(SHOOTER_SP3D_INT, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),/*sharp INT*/
 	GPIO_CFG(SHOOTER_SP3D_SPI_DO, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_DI, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_CS, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
@@ -1253,7 +1253,7 @@ static uint32_t camera_on_gpio_table_sp3d[] = {
 	GPIO_CFG(SHOOTER_CAM_I2C_SDA, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
 	GPIO_CFG(SHOOTER_CAM_I2C_SCL, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
 	GPIO_CFG(SHOOTER_SP3D_MCLK, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_6MA),/*MCLK*/
-	GPIO_CFG(106, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(SHOOTER_SP3D_INT, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_DO,  1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_DI,  1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_CS,  1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
@@ -1281,7 +1281,7 @@ static uint32_t camera_off_gpio_table_liteon[] = {
 	GPIO_CFG(SHOOTER_CAM_I2C_SDA, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),/*i2c*/
 	GPIO_CFG(SHOOTER_CAM_I2C_SCL, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),/*i2c*/
 	GPIO_CFG(SHOOTER_SP3D_MCLK, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),/*MCLK*/
-	GPIO_CFG(106, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),/*sharp INT*/
+	GPIO_CFG(SHOOTER_SP3D_INT, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),/*sharp INT*/
 	GPIO_CFG(SHOOTER_SP3D_SPI_DO, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_DI, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_CS, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
@@ -1298,7 +1298,7 @@ static uint32_t camera_on_gpio_table_liteon[] = {
 	GPIO_CFG(SHOOTER_CAM_I2C_SDA, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
 	GPIO_CFG(SHOOTER_CAM_I2C_SCL, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_8MA),
 	GPIO_CFG(SHOOTER_SP3D_MCLK, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_6MA),/*MCLK*/
-	GPIO_CFG(106, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+	GPIO_CFG(SHOOTER_SP3D_INT, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_DO,  0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_DI,  0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(SHOOTER_SP3D_SPI_CS,  0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
@@ -1852,7 +1852,7 @@ static struct platform_device msm_gemini_device = {
 #ifdef CONFIG_TPS65200
 static struct tps65200_platform_data tps65200_data = {
 	.charger_check = 1,
-	.gpio_chg_stat = PM8058_GPIO_IRQ(PM8058_IRQ_BASE, shooter_CHG_STAT),
+	.gpio_chg_stat = PM8058_GPIO_IRQ(PM8058_IRQ_BASE, SHOOTER_CHG_STAT),
 	.gpio_chg_int  = MSM_GPIO_TO_INT(shooter_GPIO_CHG_INT),
 };
 
@@ -2283,9 +2283,9 @@ static int shooter_ts_atmel_power(int on)
 {
 	printk(KERN_INFO "%s: power %d\n", __func__, on);
 
-	gpio_set_value(PM8058_GPIO_PM_TO_SYS(shooter_TP_RST), 0);
+	gpio_set_value(PM8058_GPIO_PM_TO_SYS(SHOOTER_TP_RST), 0);
 	msleep(5);
-	gpio_set_value(PM8058_GPIO_PM_TO_SYS(shooter_TP_RST), 1);
+	gpio_set_value(PM8058_GPIO_PM_TO_SYS(SHOOTER_TP_RST), 1);
 	msleep(40);
 
 	return 0;
@@ -3048,9 +3048,9 @@ static struct htc_headset_pmic_platform_data htc_headset_pmic_data = {
 	.driver_flag		= 0,
 	.hpin_gpio		= 0,
 	.hpin_irq		= 0,
-	.key_gpio		= PM8058_GPIO_PM_TO_SYS(shooter_AUD_REMO_PRES),
+	.key_gpio		= PM8058_GPIO_PM_TO_SYS(SHOOTER_AUD_REMO_PRES),
 	.key_irq		= 0,
-	.key_enable_gpio	= PM8058_GPIO_PM_TO_SYS(shooter_AUD_REMO_EN),
+	.key_enable_gpio	= PM8058_GPIO_PM_TO_SYS(SHOOTER_AUD_REMO_EN),
 	.adc_mic_bias		= {0, 0},
 	.adc_remote		= {0, 0, 0, 0, 0, 0},
 };
@@ -3780,7 +3780,7 @@ static int pm8058_gpios_init(void)
 	struct pm8058_gpio_cfg gpio_cfgs[] = {
 #ifdef CONFIG_MMC_MSM_CARD_HW_DETECTION
 		{
-			PM8058_GPIO_PM_TO_SYS(shooter_SDC3_DET),
+			PM8058_GPIO_PM_TO_SYS(SHOOTER_SDC3_DET),
 			{
 				.direction      = PM_GPIO_DIR_IN,
 				.pull           = PM_GPIO_PULL_UP_30,
@@ -3791,7 +3791,7 @@ static int pm8058_gpios_init(void)
 		},
 #endif
 		{ /* Audio Microphone Selector */
-			PM8058_GPIO_PM_TO_SYS(shooter_AUD_MIC_SEL),    /* 26 */
+			PM8058_GPIO_PM_TO_SYS(SHOOTER_AUD_MIC_SEL),    /* 26 */
 			{
 				.direction      = PM_GPIO_DIR_OUT,
 				.output_value   = 0,
@@ -3830,7 +3830,7 @@ static int pm8058_gpios_init(void)
 			}
 		},
 		{ /* Timpani Reset */
-			PM8058_GPIO_PM_TO_SYS(shooter_AUD_QTR_RESET),
+			PM8058_GPIO_PM_TO_SYS(SHOOTER_AUD_QTR_RESET),
 			{
 				.direction	= PM_GPIO_DIR_OUT,
 				.output_value	= 1,
@@ -3843,7 +3843,7 @@ static int pm8058_gpios_init(void)
 			}
 		},
 		{
-			PM8058_GPIO_PM_TO_SYS(shooter_PLS_INT),
+			PM8058_GPIO_PM_TO_SYS(SHOOTER_PLS_INT),
 			{
 				.direction		= PM_GPIO_DIR_IN,
 				.pull			= PM_GPIO_PULL_UP_1P5,
@@ -3853,7 +3853,7 @@ static int pm8058_gpios_init(void)
 			},
 		},
 		{ /* Green LED */
-			PM8058_GPIO_PM_TO_SYS(shooter_GREEN_LED),
+			PM8058_GPIO_PM_TO_SYS(SHOOTER_GREEN_LED),
 			{
 				.direction	= PM_GPIO_DIR_OUT,
 				.output_value	= 1,
@@ -3866,7 +3866,7 @@ static int pm8058_gpios_init(void)
 			}
 		},
 		{ /* AMBER */
-			PM8058_GPIO_PM_TO_SYS(shooter_AMBER_LED),
+			PM8058_GPIO_PM_TO_SYS(SHOOTER_AMBER_LED),
 			{
 				.direction	= PM_GPIO_DIR_OUT,
 				.output_value	= 1,
@@ -3905,7 +3905,7 @@ static int pm8058_gpios_init(void)
 			}
 		},
 		{ /* Audio remote press */
-			PM8058_GPIO_PM_TO_SYS(shooter_AUD_REMO_PRES),
+			PM8058_GPIO_PM_TO_SYS(SHOOTER_AUD_REMO_PRES),
 			{
 				.direction	= PM_GPIO_DIR_IN,
 				.pull		= PM_GPIO_PULL_UP_1P5,
@@ -3915,7 +3915,7 @@ static int pm8058_gpios_init(void)
 			}
 		},
 		{ /*Audio remote key enable*/
-			PM8058_GPIO_PM_TO_SYS(shooter_AUD_REMO_EN),
+			PM8058_GPIO_PM_TO_SYS(SHOOTER_AUD_REMO_EN),
 			{
 				.direction	= PM_GPIO_DIR_OUT,
 				.output_value	= 0,
@@ -4883,7 +4883,7 @@ static int isl29028_power(int pwr_device, uint8_t enable)
 }
 
 static struct isl29028_platform_data isl29028_pdata = {
-	.intr = PM8058_GPIO_PM_TO_SYS(shooter_PLS_INT),
+	.intr = PM8058_GPIO_PM_TO_SYS(SHOOTER_PLS_INT),
 	.levels = {17, 79, 258, 588, 918, 1250, 1962, 2673, 3384, 4095},
 	.golden_adc = 0x4E2,
 	.power = isl29028_power,
@@ -4895,7 +4895,7 @@ static struct i2c_board_info i2c_isl29028_devices[] = {
 	{
 		I2C_BOARD_INFO(ISL29028_I2C_NAME, 0x8A >> 1),
 		.platform_data = &isl29028_pdata,
-		.irq = PM8058_GPIO_IRQ(PM8058_IRQ_BASE, shooter_PLS_INT),
+		.irq = PM8058_GPIO_IRQ(PM8058_IRQ_BASE, SHOOTER_PLS_INT),
 	},
 };
 
@@ -4905,7 +4905,7 @@ static int isl29029_power(int pwr_device, uint8_t enable)
 }
 
 static struct isl29029_platform_data isl29029_pdata = {
-	.intr = PM8058_GPIO_PM_TO_SYS(shooter_PLS_INT),
+	.intr = PM8058_GPIO_PM_TO_SYS(SHOOTER_PLS_INT),
 	.levels = {17, 79, 258, 588, 918, 1250, 1962, 2673, 3384, 4095},
 	.golden_adc = 0x4E2,
 	.power = isl29029_power,
@@ -4917,7 +4917,7 @@ static struct i2c_board_info i2c_isl29029_devices[] = {
 	{
 		I2C_BOARD_INFO(ISL29029_I2C_NAME, 0x8A >> 1),
 		.platform_data = &isl29029_pdata,
-		.irq = PM8058_GPIO_IRQ(PM8058_IRQ_BASE, shooter_PLS_INT),
+		.irq = PM8058_GPIO_IRQ(PM8058_IRQ_BASE, SHOOTER_PLS_INT),
 	},
 };
 
@@ -5904,18 +5904,18 @@ static unsigned int msm8x60_sdcc_slot_status(struct device *dev)
 {
 	int status;
 
-	status = gpio_request(PM8058_GPIO_PM_TO_SYS(shooter_SDC3_DET)
+	status = gpio_request(PM8058_GPIO_PM_TO_SYS(SHOOTER_SDC3_DET)
 				, "SD_HW_Detect");
 	if (status) {
 		pr_err("%s:Failed to request GPIO %d\n", __func__,
-				PM8058_GPIO_PM_TO_SYS(shooter_SDC3_DET));
+				PM8058_GPIO_PM_TO_SYS(SHOOTER_SDC3_DET));
 	} else {
 		status = gpio_direction_input(
-				PM8058_GPIO_PM_TO_SYS(shooter_SDC3_DET));
+				PM8058_GPIO_PM_TO_SYS(SHOOTER_SDC3_DET));
 		if (!status)
 			status = !(gpio_get_value_cansleep(
-				PM8058_GPIO_PM_TO_SYS(shooter_SDC3_DET)));
-		gpio_free(PM8058_GPIO_PM_TO_SYS(shooter_SDC3_DET));
+				PM8058_GPIO_PM_TO_SYS(SHOOTER_SDC3_DET)));
+		gpio_free(PM8058_GPIO_PM_TO_SYS(SHOOTER_SDC3_DET));
 	}
 	return (unsigned int) status;
 }
@@ -5985,7 +5985,7 @@ static struct mmc_platform_data msm8x60_sdc3_data = {
 #ifdef CONFIG_MMC_MSM_CARD_HW_DETECTION
 	.status      = msm8x60_sdcc_slot_status,
 	.status_irq  = PM8058_GPIO_IRQ(PM8058_IRQ_BASE,
-				       shooter_SDC3_DET),
+				       SHOOTER_SDC3_DET),
 	.irq_flags   = IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
 #endif
 	.slot_type	= &shooter_sdslot_type,
@@ -6515,7 +6515,7 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	       system_rev, (speed_bin == 0x1) ? 1 : 0);
 	if (system_rev > 2 || speed_bin == 0x1) {
 		htc_headset_pmic_data.key_gpio =
-			PM8058_GPIO_PM_TO_SYS(shooter_AUD_REMO_PRES);
+			PM8058_GPIO_PM_TO_SYS(SHOOTER_AUD_REMO_PRES);
 		htc_headset_mgr_data.headset_config_num =
 			ARRAY_SIZE(htc_headset_mgr_config);
 		htc_headset_mgr_data.headset_config = htc_headset_mgr_config;

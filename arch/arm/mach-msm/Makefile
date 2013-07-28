@@ -373,10 +373,10 @@ else
 obj-$(CONFIG_MACH_SHOOTER) += board-shooter-mmc.o board-shooter-wifi.o
 endif
 obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter_u.o
-obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter_u-keypad.o
-obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter_u-audio.o
-obj-$(CONFIG_MACH_SHOOTER_U) += htc_bdaddress.o board-shooter_u-rfkill.o
-obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter_u-mmc.o board-shooter_u-wifi.o
+obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter-keypad.o
+obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter-audio.o
+obj-$(CONFIG_MACH_SHOOTER_U) += htc_bdaddress.o board-shooter-rfkill.o
+obj-$(CONFIG_MACH_SHOOTER_U) += board-shooter-mmc.o board-shooter-wifi.o
 obj-$(CONFIG_MACH_SHOOTER_K) += board-shooter_k.o
 obj-$(CONFIG_MACH_SHOOTER_K) += board-shooter_k-keypad.o
 obj-$(CONFIG_MACH_SHOOTER_K) += board-shooter_k-audio.o

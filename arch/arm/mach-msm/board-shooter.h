@@ -17,8 +17,6 @@
 
 #include <mach/board.h>
 
-#define shooter_PROJECT_NAME	"shooter"
-
 #define MSM_RAM_CONSOLE_BASE	MSM_HTC_RAM_CONSOLE_PHYS
 #define MSM_RAM_CONSOLE_SIZE	MSM_HTC_RAM_CONSOLE_SIZE
 
@@ -51,7 +49,6 @@
 				(roundup((960 * ALIGN(540, 32) * 4), 4096) * 2)
 #endif
 
-
 #ifdef CONFIG_FB_MSM_OVERLAY_WRITEBACK
 /* width x height x 3 bpp x 2 frame buffer */
 #define MSM_FB_WRITEBACK_SIZE roundup(960 * ALIGN(540, 32) * 3 * 2, 4096)
@@ -83,7 +80,6 @@
 #define MSM_OVERLAY_BLT_BASE	(MSM_PMEM_SF_BASE - MSM_OVERLAY_BLT_SIZE)
 #define MSM_PMEM_AUDIO_BASE	(MSM_OVERLAY_BLT_BASE - MSM_PMEM_AUDIO_SIZE)
 
-
 #define MSM_PMEM_ADSP_BASE	(0x40400000)
 #define MSM_PMEM_ADSP2_BASE	(MSM_PMEM_ADSP_BASE + MSM_PMEM_ADSP_SIZE)
 
@@ -112,7 +108,6 @@
 
 #define PHY_BASE_ADDR1		0x48000000
 #define SIZE_ADDR1		0x23000000
-
 
 /* GPIO definition */
 
@@ -163,7 +158,6 @@
 #define shooter_TP_I2C_SCL		(52)
 #define shooter_TP_ATT_N		(65)
 #define shooter_TP_ATT_N_XC		(57)
-
 
 /* LCD */
 #define GPIO_LCM_ID	50

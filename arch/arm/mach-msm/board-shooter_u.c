@@ -286,22 +286,12 @@ static void *sdc2_status_notify_cb_devid;
 /* Speed bin register. */
 #define QFPROM_SPEED_BIN_ADDR		(MSM_QFPROM_BASE + 0x00C0)
 
-/* -----------------------------------------------------------------------------
-*                         External routine declaration
---------------------------------------------------------------------------------*/
-
-
 #ifdef CONFIG_MMC_MSM_SDC5_SUPPORT
 static void (*sdc5_status_notify_cb)(int card_present, void *dev_id);
 static void *sdc5_status_notify_cb_devid;
 #endif
 
 static unsigned int engineerid, mem_size_mb;
-
-unsigned int shooter_get_engineerid(void)
-{
-	return engineerid;
-}
 
 #define _GET_REGULATOR(var, name) do {				\
 	var = regulator_get(NULL, name);			\
@@ -449,6 +439,7 @@ static struct perflock_platform_data shooter_perflock_data = {
 static struct regulator_consumer_supply vreg_consumers_8901_S0[] = {
 	REGULATOR_SUPPLY("8901_s0",		NULL),
 };
+
 static struct regulator_consumer_supply vreg_consumers_8901_S1[] = {
 	REGULATOR_SUPPLY("8901_s1",		NULL),
 };
@@ -849,6 +840,7 @@ static struct resource isp1763_resources[] = {
 		.flags	= IORESOURCE_IRQ,
 	},
 };
+
 static void __init msm8x60_cfg_isp1763(void)
 {
 	isp1763_resources[1].start = gpio_to_irq(ISP1763_INT_GPIO);
@@ -895,6 +887,7 @@ gpio_free_int:
 
 	return status;
 }
+
 static struct isp1763_platform_data isp1763_pdata = {
 	.reset_gpio	= ISP1763_RST_GPIO,
 	.setup_gpio	= isp1763_setup_gpio
@@ -1066,7 +1059,6 @@ static void msm_hsusb_vbus_power(bool on)
 			pr_err("%s: Unable to enable the regulator:"
 				" ext_5v_reg\n", __func__);
 	}
-
 	vbus_is_on = on;
 }
 
@@ -1345,7 +1337,6 @@ static int camera_sensor_power_enable(char *power, unsigned volt, struct regulat
 		*sensor_power = NULL;
 		return -ENODEV;
 	}
-
 	return rc;
 }
 
@@ -1371,7 +1362,6 @@ static int camera_sensor_power_enable_8901(char *power, struct regulator **senso
 		*sensor_power = NULL;
 		return -ENODEV;
 	}
-
 	return rc;
 }
 
@@ -1472,7 +1462,6 @@ static int Shooter_sp3d_vreg_off(void)
 		rc = camera_sensor_power_disable(shooter_reg_8901_lvs2);
 	else
 		rc = camera_sensor_power_disable(shooter_reg_8058_l8);
-
 	return rc;
 }
 #endif
@@ -1513,7 +1502,6 @@ static int Shooter_qs_s5k4e1_vreg_on(void)
 	shooter_set_gpio(SHOOTER_S5K4E1_INTB, 1);
 	shooter_set_gpio(SHOOTER_S5K4E1_PD, 1);
 	shooter_set_gpio(SHOOTER_S5K4E1_VCM_PD, 1);
-
 	return rc;
 }
 
@@ -1862,7 +1850,6 @@ static int __init check_dq_setup(char *str)
 		tps65200_data.dq_result = 1;
 	else
 		tps65200_data.dq_result = 0;
-
 	return 1;
 }
 __setup("androidboot.dq=", check_dq_setup);
@@ -2145,6 +2132,7 @@ static struct platform_device android_pmem_audio_device = {
 		}, \
 	.num_paths = 1, \
 	}
+
 static struct msm_bus_paths pmem_smi_table[] = {
 	[0] = PMEM_BUS_WIDTH(0), /* Off */
 	[1] = PMEM_BUS_WIDTH(1), /* On */
@@ -2231,6 +2219,7 @@ static struct android_pmem_platform_data android_pmem_smipool_pdata = {
 	.setup_region = pmem_setup_smi_region,
 	.map_on_demand = 1,
 };
+
 static struct platform_device android_pmem_smipool_device = {
 	.name = "android_pmem",
 	.id = 7,
@@ -2286,7 +2275,6 @@ static int shooter_ts_atmel_power(int on)
 	msleep(5);
 	gpio_set_value(PM8058_GPIO_PM_TO_SYS(SHOOTER_TP_RST), 1);
 	msleep(40);
-
 	return 0;
 }
 
@@ -3367,7 +3355,6 @@ static struct pm8058_led_config pm_led_config[] = {
 		.lut_flag = PM_PWM_LUT_RAMP_UP | PM_PWM_LUT_PAUSE_HI_EN,
 		.out_current = 10,
 	},
-
 };
 
 static struct pm8058_led_platform_data pm8058_leds_data = {
@@ -3427,7 +3414,6 @@ static void mhl_sii9234_1v2_power(bool enable)
 		hdmi_hpd_feature(0);
 		pr_info("%s(off): success\n", __func__);
 	}
-
 	prev_on = enable;
 }
 
@@ -3501,9 +3487,7 @@ static int mhl_sii9234_all_power(bool enable)
 				"reg_8901_l0", rc);
 		pr_info("%s(off): success\n", __func__);
 	}
-
 	prev_on = enable;
-
 	return 0;
 }
 
@@ -3966,7 +3950,6 @@ static int pm8058_gpios_init(void)
 			return rc;
 		}
 	}
-
 	return 0;
 }
 
@@ -4190,7 +4173,6 @@ static int pm8058_pwm_config(struct pwm_device *pwm, int ch, int on)
 			       __func__, ch, rc);
 	}
 	return rc;
-
 }
 
 static struct pm8058_pwm_pdata pm8058_pwm_data = {
@@ -4298,6 +4280,7 @@ static const int vregs_tdisc_val[] = {
 	2850000,/* uV */
 	1800000,
 };
+
 static struct regulator *vregs_tdisc[ARRAY_SIZE(vregs_tdisc_name)];
 
 static int tdisc_shinetsu_setup(void)
@@ -4344,7 +4327,6 @@ static int tdisc_shinetsu_setup(void)
 			goto vreg_set_voltage_fail;
 		}
 	}
-
 	return rc;
 vreg_set_voltage_fail:
 	i++;
@@ -4588,7 +4570,6 @@ static int msm_timpani_codec_power(int vreg_on)
 			goto vreg_fail;
 		}
 	}
-
 	return 0;
 
 vreg_fail:
@@ -4675,15 +4656,8 @@ static struct i2c_board_info msm_i2c_gsbi7_tpa2051d3_info[] = {
 	},
 };
 
-void msm_snddev_voltage_on(void)
-{
-}
-
 void __init shooter_audio_init(void);
 
-void msm_snddev_voltage_off(void)
-{
-}
 static struct spi_board_info msm_spi_board_info[] __initdata = {
 	{
 		.modalias	= "spi_aic3254",
@@ -4730,7 +4704,6 @@ static int pm8901_mpp_init(void)
 
 	if (rc)
 		pr_err("%s: pm8901_mpp_config failed with %d\n", __func__, rc);
-
 	return rc;
 }
 #endif
@@ -4923,9 +4896,7 @@ static struct i2c_board_info i2c_isl29029_devices[] = {
 
 static struct mpu3050_platform_data mpu3050_data = {
 	.int_config = 0x10,
-	.orientation = { -1, 0, 0,
-					0, 1, 0,
-					0, 0, -1 },
+	.orientation = { -1, 0, 0, 0, 1, 0, 0, 0, -1 },
 	.level_shifter = 0,
 
 	.accel = {
@@ -4933,10 +4904,7 @@ static struct mpu3050_platform_data mpu3050_data = {
 		.adapt_num = MSM_GSBI10_QUP_I2C_BUS_ID, /* The i2c bus to which the mpu device is connected */
 		.bus = EXT_SLAVE_BUS_SECONDARY,
 		.address = 0x30 >> 1,
-			.orientation = { -1, 0, 0,
-							0, 1, 0,
-							0, 0, -1 },
-
+		.orientation = { -1, 0, 0, 0, 1, 0, 0, 0, -1 },
 	},
 
 	.compass = {
@@ -4944,17 +4912,13 @@ static struct mpu3050_platform_data mpu3050_data = {
 		.adapt_num = MSM_GSBI10_QUP_I2C_BUS_ID, /* The i2c bus to which the mpu device is connected */
 		.bus = EXT_SLAVE_BUS_PRIMARY,
 		.address = 0x1A >> 1,
-			.orientation = { 1, 0, 0,
-							0, 1, 0,
-							0, 0, 1 },
+		.orientation = { 1, 0, 0, 0, 1, 0, 0, 0, 1 },
 	},
 };
 
 static struct mpu3050_platform_data mpu3050_data_XC = {
 	.int_config = 0x10,
-	.orientation = { -1, 0, 0,
-					0, 1, 0,
-					0, 0, -1 },
+	.orientation = { -1, 0, 0, 0, 1, 0, 0, 0, -1 },
 	.level_shifter = 0,
 
 	.accel = {
@@ -4962,10 +4926,7 @@ static struct mpu3050_platform_data mpu3050_data_XC = {
 		.adapt_num = MSM_GSBI10_QUP_I2C_BUS_ID, /* The i2c bus to which the mpu device is connected */
 		.bus = EXT_SLAVE_BUS_SECONDARY,
 		.address = 0x30 >> 1,
-			.orientation = { -1, 0, 0,
-							0, 1, 0,
-							0, 0, -1 },
-
+		.orientation = { -1, 0, 0, 0, 1, 0, 0, 0, -1 },
 	},
 
 	.compass = {
@@ -4973,9 +4934,7 @@ static struct mpu3050_platform_data mpu3050_data_XC = {
 		.adapt_num = MSM_GSBI10_QUP_I2C_BUS_ID, /* The i2c bus to which the mpu device is connected */
 		.bus = EXT_SLAVE_BUS_PRIMARY,
 		.address = 0x1A >> 1,
-			.orientation = { -1, 0, 0,
-							0, 1, 0,
-							0, 0, -1 },
+		.orientation = { -1, 0, 0, 0, 1, 0, 0, 0, -1 },
 	},
 };
 
@@ -5122,8 +5081,6 @@ static void register_i2c_devices(void)
 
 	i2c_register_board_info(MSM_GSBI5_QUP_I2C_BUS_ID,
 		msm_i2c_gsbi5_info, ARRAY_SIZE(msm_i2c_gsbi5_info));
-
-
 #endif
 }
 
@@ -5569,6 +5526,7 @@ struct sdcc_reg_data {
 	struct sdcc_reg *vddp_data; /* keeps VDD Pad regulator info */
 	unsigned char sts; /* regulator enable/disable status */
 };
+
 /* msm8x60 have 5 SDCC controllers */
 static struct sdcc_reg_data sdcc_vreg_data[MAX_SDCC_CONTROLLER];
 
@@ -5721,7 +5679,6 @@ static int msm_sdcc_vreg_disable(struct sdcc_reg *vreg)
 		}
 		rc = 0;
 	}
-
 out:
 	return rc;
 }
@@ -5792,7 +5749,6 @@ static int msm_sdcc_setup_vreg(int dev_id, unsigned char enable)
 			goto out;
 	}
 	curr->sts = enable;
-
 out:
 	return rc;
 }
@@ -5823,7 +5779,6 @@ setup_vreg:
 
 	if (rc_pin_cfg || rc_vreg_cfg)
 		rc = rc_pin_cfg ? rc_pin_cfg : rc_vreg_cfg;
-
 	return rc;
 }
 
@@ -5932,7 +5887,6 @@ static uint32_t msm_rpm_get_swfi_latency(void)
 			MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT)
 			return msm_rpmrs_levels[i].latency_us;
 	}
-
 	return 0;
 }
 
@@ -6123,9 +6077,7 @@ static int hdmi_enable_5v(int on)
 				"8901_hdmi_mvs", rc);
 		pr_info("%s(off): success\n", __func__);
 	}
-
 	prev_on = on;
-
 	return 0;
 }
 
@@ -6159,9 +6111,7 @@ static int hdmi_core_power(int on, int show)
 				"8058_l16", rc);
 		pr_info("%s(off): success\n", __func__);
 	}
-
 	prev_on = on;
-
 	return 0;
 }
 
@@ -6195,9 +6145,7 @@ static int hdmi_cec_power(int on)
 				"8901_l3", rc);
 		pr_info("%s(off): success\n", __func__);
 	}
-
 	prev_on = on;
-
 	return 0;
 }
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
@@ -6243,7 +6191,6 @@ static int atv_dac_power(int on)
 				__func__, "8058_l13", rc);
 	}
 	return rc;
-
 }
 #endif
 
@@ -6606,7 +6553,6 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	headset_device_register();
 
 	msm_mpm_set_irq_ignore_list(irq_ignore_tbl, irq_num_ignore_tbl);
-
 }
 
 static void __init shooter_init(void)

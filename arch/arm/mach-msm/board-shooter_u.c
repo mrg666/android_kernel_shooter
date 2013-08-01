@@ -1069,12 +1069,11 @@ static struct msm_otg_platform_data msm_otg_pdata = {
 	.phy_init_seq		= shooter_phy_init_seq,
 	.mode			= USB_OTG,
 	.otg_control		= OTG_PMIC_CONTROL,
-	.phy_type		= SNPS_28NM_INTEGRATED_PHY,
+	.phy_type		= CI_45NM_INTEGRATED_PHY,
 	.vbus_power		= msm_hsusb_vbus_power,
 	.power_budget		= 750,
 	.ldo_3v3_name	= "8058_l6",
 	.ldo_1v8_name	= "8058_l7",
-	.phy_type = CI_45NM_INTEGRATED_PHY,
 };
 /* #endif */
 
@@ -1141,7 +1140,7 @@ static int usb_diag_update_pid_and_serial_num(uint32_t pid, const char *snum)
 
 static struct android_usb_platform_data android_usb_pdata = {
 	.vendor_id	= 0x0BB4,
-	.product_id	= 0x0cba,
+	.product_id	= 0x0ccf,
 	.version	= 0x0100,
 	.product_name		= "Android Phone",
 	.manufacturer_name	= "HTC",
@@ -1304,7 +1303,7 @@ static uint32_t camera_on_gpio_table_liteon[] = {
 };
 #endif
 
-static struct regulator *shooter_reg_8058_l3 = NULL;
+static struct regulator *shooter_reg_8901_l6 = NULL;
 static struct regulator *shooter_reg_8058_l8 = NULL;
 static struct regulator *shooter_reg_8058_l9 = NULL;
 static struct regulator *shooter_reg_8058_l10 = NULL;
@@ -1346,7 +1345,7 @@ static struct regulator *shooter_reg_8901_lvs3 = NULL;
 static int camera_sensor_power_enable_8901(char *power, struct regulator **sensor_power)
 {
 	int rc;
-	pr_info("%s %s", __func__, power);
+	pr_info("%s %s\n", __func__, power);
 	if (power == NULL)
 		return -ENODEV;
 
@@ -1397,7 +1396,7 @@ static void shooter_set_gpio(int gpio, int state)
 static int Shooter_sp3d_vreg_on(void)
 {
 	int rc = 0;
-	pr_info("[CAM] %s\n", __func__);
+	pr_info("[CAM] %s %d\n", __func__, system_rev);
 	/* VDDIO*/
 	if (system_rev == 0x80) {/*VERSION A*/
 		rc = camera_sensor_power_enable_8901("8901_lvs2", &shooter_reg_8901_lvs2);
@@ -1434,7 +1433,8 @@ static int Shooter_sp3d_vreg_on(void)
 
 static int Shooter_sp3d_vreg_off(void)
 {
-	int rc;
+	int rc = 0;
+	
 	pr_info("[CAM] %s\n", __func__);
 	shooter_set_gpio(SHOOTER_SP3D_PDX, 0); /* PDX */
 	/* main camera MVDD */
@@ -1469,8 +1469,9 @@ static int Shooter_sp3d_vreg_off(void)
 #ifdef CONFIG_QS_S5K4E1
 static int Shooter_qs_s5k4e1_vreg_on(void)
 {
-	int rc;
-	pr_info("[CAM] %s\n", __func__);
+	int rc = 0;
+	
+	pr_info("[CAM] %s %x\n", __func__, system_rev);
 	mdelay(50);
 
 	rc = camera_sensor_power_enable("8058_l15", 2800000, &shooter_reg_8058_l15);
@@ -1481,7 +1482,7 @@ static int Shooter_qs_s5k4e1_vreg_on(void)
 		/*IO*//*This is switch power*/
 		rc = camera_sensor_power_enable_8901("8901_lvs3", &shooter_reg_8901_lvs3);
 		pr_info("[CAM] sensor_power_enable(\"8901_lvs3\", 1800) == %d\n", rc);
-		mdelay(1);
+		mdelay(10);
 
 		rc = camera_sensor_power_enable_8901("8901_lvs2", &shooter_reg_8901_lvs2);
 		pr_info("[CAM] sensor_power_enable(\"8901_lvs2\", 1800) == %d\n", rc);
@@ -1507,7 +1508,8 @@ static int Shooter_qs_s5k4e1_vreg_on(void)
 
 static int Shooter_qs_s5k4e1_vreg_off(void)
 {
-	int rc;
+	int rc = 0;
+	
 	pr_info("[CAM] %s\n", __func__);
 	shooter_set_gpio(SHOOTER_S5K4E1_INTB, 0); /* interrupt */
 	shooter_set_gpio(SHOOTER_S5K4E1_VCM_PD, 0); /* PDX */
@@ -1521,6 +1523,8 @@ static int Shooter_qs_s5k4e1_vreg_off(void)
 	if (system_rev == 0x80) {/*VERSION A*/
 		rc = camera_sensor_power_disable(shooter_reg_8901_lvs2);
 		/*This is swich power*/
+		mdelay(10);
+
 		rc = camera_sensor_power_disable(shooter_reg_8901_lvs3);
 		pr_info("[CAM] sensor_power_enable(\"8901_lvs3\", 1800) == %d\n", rc);
 	} else {
@@ -1531,7 +1535,7 @@ static int Shooter_qs_s5k4e1_vreg_off(void)
 		pr_info("[CAM] sensor_power_disable(\"8058_l8\") == %d\n", rc);
 	}
 
-	/* according to logic Jason Kao, do not turn off l15 to avoid current leakage */
+	/* according to optical Jason Kao, don't turn off l15 to avoid current leakage when liteon */
 	if (!(system_rev == 0x80 && engineerid == 0x1)) {
 		rc = camera_sensor_power_disable(shooter_reg_8058_l15);
 		udelay(50);
@@ -1542,28 +1546,28 @@ static int Shooter_qs_s5k4e1_vreg_off(void)
 
 static int Shooter_s5k6aafx_vreg_on(void)
 {
-	int rc;
+	int rc = 0;
+	
 	pr_info("[CAM] %s\n", __func__);
 	/* main / 2nd camera analog power */
-	rc = camera_sensor_power_enable("8058_l3", 2850000, &shooter_reg_8058_l3);
-	pr_info("[CAM] sensor_power_enable(\"8058_l3\", 2850) == %d\n", rc);
+	rc = camera_sensor_power_enable("8901_l6", 2850000, &shooter_reg_8901_l6);
+	pr_info("[CAM]sensor_power_enable(\"8901_l6\", 2850) == %d\n", rc);
 	mdelay(5);
 	/* main / 2nd camera digital power */
 	if (system_rev == 0x80) {
 		rc = camera_sensor_power_enable_8901("8901_lvs2", &shooter_reg_8901_lvs2);
 		pr_info("[CAM] sensor_power_enable(\"8901_lvs2\", 1800) == %d\n", rc);
-		mdelay(5);
-		/*IO*/
+		mdelay(10);
+
 		rc = camera_sensor_power_enable_8901("8901_lvs3", &shooter_reg_8901_lvs3);
 		pr_info("[CAM] sensor_power_enable(\"8901_lvs3\", 1800) == %d\n", rc);
-		mdelay(1);
 	} else {
 		rc = camera_sensor_power_enable("8058_l8", 1800000, &shooter_reg_8058_l8);
 		pr_info("[CAM] sensor_power_enable(\"8058_l8\", 1800) == %d\n", rc);
 		mdelay(5);
 		/*IO*/
 		rc = camera_sensor_power_enable("8058_l9", 1800000, &shooter_reg_8058_l9);
-		pr_info("[CAM]s ensor_power_enable(\"8058_l9\", 1800) == %d\n", rc);
+		pr_info("[CAM] sensor_power_enable(\"8058_l9\", 1800) == %d\n", rc);
 		mdelay(1);
 	}
 	return rc;
@@ -1571,18 +1575,20 @@ static int Shooter_s5k6aafx_vreg_on(void)
 
 static int Shooter_s5k6aafx_vreg_off(void)
 {
-	int rc;
+	int rc = 0;
+	
 	pr_info("[CAM] %s\n", __func__);
-	/* IO power off */
-	if (system_rev == 0x80) {
+
+	if (system_rev == 0x80) {/*VERSION A*/
 		rc = camera_sensor_power_disable(shooter_reg_8901_lvs3);
 		pr_info("[CAM] sensor_power_disable(\"8901_lvs3\") == %d\n", rc);
+		/*This is swich power*/
 		mdelay(1);
-
-		/* main / 2nd camera digital power */
 		rc = camera_sensor_power_disable(shooter_reg_8901_lvs2);
 		pr_info("[CAM] sensor_power_disable(\"8901_lvs2\") == %d\n", rc);
+		mdelay(1);
 	} else {
+		/* IO power off */
 		rc = camera_sensor_power_disable(shooter_reg_8058_l9);
 		pr_info("[CAM] sensor_power_disable(\"8058_l9\") == %d\n", rc);
 		mdelay(1);
@@ -1590,14 +1596,15 @@ static int Shooter_s5k6aafx_vreg_off(void)
 		/* main / 2nd camera digital power */
 		rc = camera_sensor_power_disable(shooter_reg_8058_l8);
 		pr_info("[CAM] sensor_power_disable(\"8058_l8\") == %d\n", rc);
+		mdelay(1);
 	}
-	mdelay(1);
 	/* main / 2nd camera analog power */
-	rc = camera_sensor_power_disable(shooter_reg_8058_l3);
-	pr_info("[CAM] sensor_power_disable(\"8058_l3\") == %d\n", rc);
+	rc = camera_sensor_power_disable(shooter_reg_8901_l6);
+	pr_info("[CAM] sensor_power_disable(\"8901_l6\") == %d\n", rc);
 	return rc;
 }
 
+#define CLK_SWITCH 141
 static void Shooter_maincam_clk_switch(void)
 {
 	pr_info("[CAM] Doing clk switch (Main Cam)\n");
@@ -1677,11 +1684,13 @@ static struct spi_board_info sp3d_spi_board_info[] __initdata = {
 	{
 		.modalias	= "sp3d_spi",
 		.mode		= SPI_MODE_3,
-		.bus_num	= 1,
+		.bus_num	= 2,
 		.chip_select	= 0,
 		.max_speed_hz	= 15060000,
 	}
 };
+
+int aat1277_flashlight_control(int mode);
 
 static int flashlight_control(int mode)
 {
@@ -1692,18 +1701,8 @@ static int flashlight_control(int mode)
 #endif
 }
 static struct msm_camera_sensor_flash_src msm_flash_src = {
-#if 0
-
-	.flash_sr_type				= MSM_CAMERA_FLASH_SRC_PWM,
-	._fsrc.pwm_src.freq			= 1000,
-	._fsrc.pwm_src.max_load		= 300,
-	._fsrc.pwm_src.low_load		= 30,
-	._fsrc.pwm_src.high_load	= 100,
-	._fsrc.pwm_src.channel		= 7,
-#else
 	.flash_sr_type				= MSM_CAMERA_FLASH_SRC_CURRENT_DRIVER,
 	.camera_flash				= flashlight_control,
-#endif
 };
 
 static struct camera_flash_cfg msm_camera_sensor_flash_cfg = {
@@ -1718,20 +1717,20 @@ static struct msm_camera_sensor_flash_data flash_sp3d = {
 };
 
 static struct msm_camera_sensor_info msm_camera_sensor_sp3d_data = {
-	.sensor_name	= "sp3d",
+	.sensor_name		= "sp3d",
 	.vcm_enable		= 0,
-	.camera_power_on = Shooter_sp3d_vreg_on,
-	.camera_power_off = Shooter_sp3d_vreg_off,
-	.camera_clk_switch = Shooter_maincam_clk_switch,
+	.camera_power_on 	= Shooter_sp3d_vreg_on,
+	.camera_power_off 	= Shooter_sp3d_vreg_off,
+	.camera_clk_switch 	= Shooter_maincam_clk_switch,
 	.pdata			= &msm_camera_device_data,
 	.resource		= msm_camera_resources,
-	.num_resources	= ARRAY_SIZE(msm_camera_resources),
+	.num_resources		= ARRAY_SIZE(msm_camera_resources),
 	.flash_data		= &flash_sp3d,
-	.flash_cfg = &msm_camera_sensor_flash_cfg,
-	.stereo_low_cap_limit = 15,
-	.mirror_mode = 0,
-	.csi_if		= 1,
-	.dev_node	= 0
+	.flash_cfg 		= &msm_camera_sensor_flash_cfg,
+	.stereo_low_cap_limit 	= 15,
+	.mirror_mode 		= 0,
+	.csi_if			= 1,
+	.dev_node		= 0
 };
 
 struct platform_device msm_camera_sensor_sp3d = {
@@ -1750,18 +1749,18 @@ static struct msm_camera_sensor_flash_data flash_qs_s5k4e1 = {
 };
 
 static struct msm_camera_sensor_info msm_camera_sensor_qs_s5k4e1_data = {
-	.sensor_name	= "qs_s5k4e1",
-	.sensor_reset	= SHOOTER_S5K4E1_PD,
+	.sensor_name		= "qs_s5k4e1",
+	.sensor_reset		= SHOOTER_S5K4E1_PD,
 	.vcm_enable		= 0,
-	.camera_power_on = Shooter_qs_s5k4e1_vreg_on,
-	.camera_power_off = Shooter_qs_s5k4e1_vreg_off,
-	.camera_clk_switch = Shooter_maincam_clk_switch,
+	.camera_power_on 	= Shooter_qs_s5k4e1_vreg_on,
+	.camera_power_off 	= Shooter_qs_s5k4e1_vreg_off,
+	.camera_clk_switch 	= Shooter_maincam_clk_switch,
 	.pdata			= &msm_camera_device_data,
 	.resource		= msm_camera_resources,
-	.num_resources	= ARRAY_SIZE(msm_camera_resources),
+	.num_resources		= ARRAY_SIZE(msm_camera_resources),
 	.flash_data		= &flash_qs_s5k4e1,
-	.flash_cfg = &msm_camera_sensor_flash_cfg,
-	.stereo_low_cap_limit = 15,
+	.flash_cfg 		= &msm_camera_sensor_flash_cfg,
+	.stereo_low_cap_limit 	= 15,
 	.csi_if			= 1,
 	.dev_node		= 0,
 	.eeprom_data		= eeprom_data,
@@ -1779,20 +1778,20 @@ static struct msm_camera_sensor_flash_data flash_s5k6aafx = {
 };
 
 static struct msm_camera_sensor_info msm_camera_sensor_s5k6aafx_data = {
-	.sensor_name	= "s5k6aafx",
-	.sensor_reset	= SHOOTER_WEBCAM_RST,/*2nd Cam RST*/
+	.sensor_name		= "s5k6aafx",
+	.sensor_reset		= SHOOTER_WEBCAM_RST,/*2nd Cam RST*/
 	.sensor_pwd		= SHOOTER_WEBCAM_STB,/*2nd Cam PWD*/
 	.vcm_enable		= 0,
-	.camera_power_on = Shooter_s5k6aafx_vreg_on,
-	.camera_power_off = Shooter_s5k6aafx_vreg_off,
-	.camera_clk_switch = Shooter_seccam_clk_switch,
+	.camera_power_on 	= Shooter_s5k6aafx_vreg_on,
+	.camera_power_off 	= Shooter_s5k6aafx_vreg_off,
+	.camera_clk_switch 	= Shooter_seccam_clk_switch,
 	.pdata			= &msm_camera_device_data_web_cam,
 	.resource		= msm_camera_resources,
-	.num_resources	= ARRAY_SIZE(msm_camera_resources),
+	.num_resources		= ARRAY_SIZE(msm_camera_resources),
 	.flash_data             = &flash_s5k6aafx,
-	.mirror_mode = 0,
-	.csi_if		= 1,
-	.dev_node	= 1,
+	.mirror_mode 		= 0,
+	.csi_if			= 1,
+	.dev_node		= 1
 };
 
 static void __init msm8x60_init_camera(void)
@@ -1991,7 +1990,7 @@ static struct msm_spi_platform_data msm_gsbi1_qup_spi_pdata = {
 	.max_clock_speed = 10800000,
 };
 
-static struct msm_spi_platform_data msm_gsbi2_qup_spi_pdata = {
+static struct msm_spi_platform_data msm_gsbi3_qup_spi_pdata = {
 	.max_clock_speed = 15060000,
 };
 #endif
@@ -2591,9 +2590,10 @@ static struct regulator_consumer_supply vreg_consumers_PM8058_L21[] = {
 static struct regulator_consumer_supply vreg_consumers_PM8058_L22[] = {
 	REGULATOR_SUPPLY("8058_l22",		NULL),
 };
-static struct regulator_consumer_supply vreg_consumers_PM8058_L23[] = {
+/* TBD: will not use, need check for default value */
+/*static struct regulator_consumer_supply vreg_consumers_PM8058_L23[] = {
 	REGULATOR_SUPPLY("8058_l23",		NULL),
-};
+};*/
 static struct regulator_consumer_supply vreg_consumers_PM8058_L24[] = {
 	REGULATOR_SUPPLY("8058_l24",		NULL),
 };
@@ -2817,7 +2817,7 @@ static struct rpm_regulator_init_data rpm_regulator_init_data[] = {
 	RPM_LDO(PM8058_L20, 0, 1, 0, 1800000, 1800000, LDO150HMIN),
 	RPM_LDO(PM8058_L21, 1, 1, 0, 1200000, 1200000, LDO150HMIN),
 	RPM_LDO(PM8058_L22, 0, 0, 0, 1200000, 1200000, LDO300HMIN),
-	RPM_LDO(PM8058_L23, 0, 0, 0, 1200000, 1200000, LDO300HMIN),
+	//RPM_LDO(PM8058_L23, 0, 0, 0, 1200000, 1200000, LDO300HMIN),
 	RPM_LDO(PM8058_L24, 0, 1, 0, 1200000, 1200000, LDO150HMIN),
 	RPM_LDO(PM8058_L25, 0, 1, 0, 1200000, 1200000, LDO150HMIN),
 
@@ -2840,7 +2840,7 @@ static struct rpm_regulator_init_data rpm_regulator_init_data[] = {
 	RPM_LDO(PM8901_L3,  0, 1, 0, 3300000, 3300000, LDO300HMIN),
 	RPM_LDO(PM8901_L4,  0, 1, 0, 2850000, 2850000, LDO300HMIN),
 	RPM_LDO(PM8901_L5,  0, 1, 0, 2850000, 2850000, LDO300HMIN),
-	RPM_LDO(PM8901_L6,  0, 0, 0, 2200000, 2200000, LDO300HMIN),
+	RPM_LDO(PM8901_L6,  0, 1, 0, 2850000, 2850000, LDO300HMIN),
 
 	/*	 ID       a_on pd ss min_uV   max_uV   init_ip   freq */
 	RPM_SMPS(PM8901_S2, 0, 1, 0, 1200000, 1200000, FTS_HMIN, 1p60),
@@ -3939,9 +3939,6 @@ static int pm8058_gpios_init(void)
 	};
 
 	for (i = 0; i < ARRAY_SIZE(gpio_cfgs); ++i) {
-		if (gpio_cfgs[i].gpio == PM8058_GPIO_PM_TO_SYS(SHOOTER_3DLCM_PD) && system_rev == 0)
-			continue;
-
 		rc = pm8xxx_gpio_config(gpio_cfgs[i].gpio,
 				&gpio_cfgs[i].cfg);
 		if (rc < 0) {
@@ -3960,7 +3957,7 @@ static struct pm8xxx_vibrator_platform_data pm8058_vib_pdata = {
 };
 
 /* MUST FIX!! */
-#define PM8058_LINE_IN_DET_GPIO	PM8058_GPIO_PM_TO_SYS(28)
+#define PM8058_LINE_IN_DET_GPIO	PM8058_GPIO_PM_TO_SYS(10)
 
 static struct othc_accessory_info othc_accessories[]  = {
 	{
@@ -4981,7 +4978,7 @@ static struct i2c_registry msm8x60_i2c_devices[] __initdata = {
 #endif
 #endif /*CONFIG_MSM_SSBI */
 #ifdef CONFIG_MSM_CAMERA
-    {
+	{
 		I2C_SURF | I2C_FFA,
 		MSM_GSBI4_QUP_I2C_BUS_ID,
 		msm_camera_boardinfo,
@@ -5049,10 +5046,7 @@ static void register_i2c_devices(void)
 	int i;
 
 	/* Build the matching 'supported_machs' bitmask */
-	if (machine_is_shooter())
-		mach_mask = I2C_SURF;
-	else
-		pr_err("unmatched machine ID in register_i2c_devices\n");
+	mach_mask = I2C_SURF;
 
 	/* Run the array and install devices as appropriate */
 	for (i = 0; i < ARRAY_SIZE(msm8x60_i2c_devices); ++i) {
@@ -5116,7 +5110,7 @@ static void __init msm8x60_init_buses(void)
 #endif
 #if defined(CONFIG_SPI_QUP) || defined(CONFIG_SPI_QUP_MODULE)
 	msm_gsbi1_qup_spi_device.dev.platform_data = &msm_gsbi1_qup_spi_pdata;
-	msm_gsbi2_qup_spi_device.dev.platform_data = &msm_gsbi2_qup_spi_pdata;
+	msm_gsbi3_qup_spi_device.dev.platform_data = &msm_gsbi3_qup_spi_pdata;
 #endif
 #ifdef CONFIG_I2C_SSBI
 	msm_device_ssbi2.dev.platform_data = &msm_ssbi2_pdata;
@@ -5705,13 +5699,13 @@ static int msm_sdcc_setup_vreg(int dev_id, unsigned char enable)
 				__func__, rc);
 			goto out;
 		}
-               if (dev_id == 3 && curr_vddp_reg) {
-                       rc = msm_sdcc_vreg_enable(curr_vddp_reg);
-                       if (rc) {
-                               pr_err("%s: SD vddp regulator L5 enable failed = %d\n",
-                                       __func__, rc);
-                       }
-               }
+		if (dev_id == 3 && curr_vddp_reg) {
+			rc = msm_sdcc_vreg_enable(curr_vddp_reg);
+			if (rc) {
+				pr_err("%s: SD vddp regulator L5 enable failed = %d\n",
+					__func__, rc);
+			}
+		}
 	}
 
 	if (curr->sts == enable)
@@ -6346,13 +6340,13 @@ uint32_t __initdata regulator_lpm_set[] =
 	PM8058_LPM_SET(PM8058_L0) | PM8058_LPM_SET(PM8058_L1) | PM8058_LPM_SET(PM8058_L2) |
 	PM8058_LPM_SET(PM8058_L5) | PM8058_LPM_SET(PM8058_L6) | PM8058_LPM_SET(PM8058_L7) |
 	PM8058_LPM_SET(PM8058_L8) | PM8058_LPM_SET(PM8058_L9) | PM8058_LPM_SET(PM8058_L10) |
-	PM8058_LPM_SET(PM8058_L11) | PM8058_LPM_SET(PM8058_L12) | PM8058_LPM_SET(PM8058_L13) |
+	PM8058_LPM_SET(PM8058_L11) | PM8058_LPM_SET(PM8058_L13) |
 	PM8058_LPM_SET(PM8058_L15) | PM8058_LPM_SET(PM8058_L16) | PM8058_LPM_SET(PM8058_L17) |
 	PM8058_LPM_SET(PM8058_L18) | PM8058_LPM_SET(PM8058_L19) | PM8058_LPM_SET(PM8058_L20) |
 	PM8058_LPM_SET(PM8058_L21) | PM8058_LPM_SET(PM8058_L22) | PM8058_LPM_SET(PM8058_L23) |
 	PM8058_LPM_SET(PM8058_L24) | PM8058_LPM_SET(PM8058_L25),
-	PM8901_LPM_SET(PM8901_L0) | PM8901_LPM_SET(PM8901_L1) | PM8901_LPM_SET(PM8901_L2) |
-	PM8901_LPM_SET(PM8901_L3) | PM8901_LPM_SET(PM8901_L5),
+	PM8901_LPM_SET(PM8901_L0) | PM8901_LPM_SET(PM8901_L2) | PM8901_LPM_SET(PM8901_L3) |
+	PM8901_LPM_SET(PM8901_L5) | PM8901_LPM_SET(PM8901_L6),
 };
 
 static void __init msm8x60_init(struct msm_board_data *board_data)
@@ -6426,11 +6420,10 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 
 	msm_clock_init(&msm8x60_clock_init_data);
 
-	#ifdef CONFIG_SP3D
 	spi_register_board_info(sp3d_spi_board_info,
 			ARRAY_SIZE(sp3d_spi_board_info));
-	#endif
-	/* Buses need to be initialized before early-device registration
+
+	 /* Buses need to be initialized before early-device registration
 	 * to get the platform data for fabrics.
 	 */
 	msm8x60_init_buses();
@@ -6495,7 +6488,7 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 
 #if defined(CONFIG_SPI_QUP) || defined(CONFIG_SPI_QUP_MODULE)
 	platform_device_register(&msm_gsbi1_qup_spi_device);
-	platform_device_register(&msm_gsbi2_qup_spi_device);
+	platform_device_register(&msm_gsbi3_qup_spi_device);
 #endif
 
 	shooter_init_panel(msm_fb_resources, ARRAY_SIZE(msm_fb_resources));

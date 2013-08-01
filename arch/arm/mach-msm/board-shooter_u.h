@@ -161,8 +161,8 @@
 
 
 /* LCD */
-#define GPIO_LCM_ID	50
-#define GPIO_LCM_RST_N	66
+#define GPIO_LCM_ID			50
+#define GPIO_LCM_RST_N			66
 
 /* Audio */
 #define SHOOTER_AUD_CODEC_RST		(67)

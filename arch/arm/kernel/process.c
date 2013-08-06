@@ -258,6 +258,7 @@ void machine_shutdown(void)
 {
 	preempt_disable();
 #ifdef CONFIG_SMP
+	local_irq_disable();
 	smp_send_stop();
 #endif
 }

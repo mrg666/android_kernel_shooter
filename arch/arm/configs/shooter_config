@@ -649,8 +649,7 @@ CONFIG_NEON=y
 # Userspace binary formats
 #
 CONFIG_BINFMT_ELF=y
-CONFIG_HAVE_AOUT=y
-# CONFIG_BINFMT_AOUT is not set
+# CONFIG_HAVE_AOUT is not set
 # CONFIG_BINFMT_MISC is not set
 
 #

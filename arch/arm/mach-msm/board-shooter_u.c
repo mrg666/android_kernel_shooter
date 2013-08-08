@@ -1072,8 +1072,8 @@ static struct msm_otg_platform_data msm_otg_pdata = {
 	.phy_type		= CI_45NM_INTEGRATED_PHY,
 	.vbus_power		= msm_hsusb_vbus_power,
 	.power_budget		= 750,
-	.ldo_3v3_name	= "8058_l6",
-	.ldo_1v8_name	= "8058_l7",
+	.ldo_3v3_name		= "8058_l6",
+	.ldo_1v8_name		= "8058_l7",
 };
 /* #endif */
 
@@ -1139,18 +1139,18 @@ static int usb_diag_update_pid_and_serial_num(uint32_t pid, const char *snum)
 }
 
 static struct android_usb_platform_data android_usb_pdata = {
-	.vendor_id	= 0x0BB4,
-	.product_id	= 0x0ccf,
-	.version	= 0x0100,
+	.vendor_id		= 0x0BB4,
+	.product_id		= 0x0ccf,
+	.version		= 0x0100,
 	.product_name		= "Android Phone",
 	.manufacturer_name	= "HTC",
-	.num_products = ARRAY_SIZE(usb_products),
-	.products = usb_products,
-	.num_functions = ARRAY_SIZE(usb_functions_all),
-	.functions = usb_functions_all,
+	.num_products		= ARRAY_SIZE(usb_products),
+	.products		= usb_products,
+	.num_functions		= ARRAY_SIZE(usb_functions_all),
+	.functions		= usb_functions_all,
 	.update_pid_and_serial_num = usb_diag_update_pid_and_serial_num,
-	.fserial_init_string = "tty:modem,tty,tty:serial",
-	.nluns = 1,
+	.fserial_init_string	= "tty:modem,tty,tty:serial",
+	.nluns			= 1,
 };
 
 static struct platform_device android_usb_device = {
@@ -1178,10 +1178,10 @@ static struct resource msm_vpe_resources[] = {
 };
 
 static struct platform_device msm_vpe_device = {
-	.name = "msm_vpe",
-	.id   = 0,
-	.num_resources = ARRAY_SIZE(msm_vpe_resources),
-	.resource = msm_vpe_resources,
+	.name		= "msm_vpe",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(msm_vpe_resources),
+	.resource	= msm_vpe_resources,
 };
 #endif
 
@@ -1200,9 +1200,9 @@ static struct htc_battery_platform_data htc_battery_pdev_data = {
 };
 
 static struct platform_device htc_battery_pdev = {
-	.name = "htc_battery",
-	.id = -1,
-	.dev    = {
+	.name	= "htc_battery",
+	.id	= -1,
+	.dev	= {
 	.platform_data = &htc_battery_pdev_data,
 	},
 };
@@ -1396,6 +1396,7 @@ static void shooter_set_gpio(int gpio, int state)
 static int Shooter_sp3d_vreg_on(void)
 {
 	int rc = 0;
+
 	pr_info("[CAM] %s %d\n", __func__, system_rev);
 	/* VDDIO*/
 	if (system_rev == 0x80) {/*VERSION A*/
@@ -1434,7 +1435,7 @@ static int Shooter_sp3d_vreg_on(void)
 static int Shooter_sp3d_vreg_off(void)
 {
 	int rc = 0;
-	
+
 	pr_info("[CAM] %s\n", __func__);
 	shooter_set_gpio(SHOOTER_SP3D_PDX, 0); /* PDX */
 	/* main camera MVDD */
@@ -1470,7 +1471,7 @@ static int Shooter_sp3d_vreg_off(void)
 static int Shooter_qs_s5k4e1_vreg_on(void)
 {
 	int rc = 0;
-	
+
 	pr_info("[CAM] %s %x\n", __func__, system_rev);
 	mdelay(50);
 
@@ -1509,7 +1510,7 @@ static int Shooter_qs_s5k4e1_vreg_on(void)
 static int Shooter_qs_s5k4e1_vreg_off(void)
 {
 	int rc = 0;
-	
+
 	pr_info("[CAM] %s\n", __func__);
 	shooter_set_gpio(SHOOTER_S5K4E1_INTB, 0); /* interrupt */
 	shooter_set_gpio(SHOOTER_S5K4E1_VCM_PD, 0); /* PDX */
@@ -1547,7 +1548,7 @@ static int Shooter_qs_s5k4e1_vreg_off(void)
 static int Shooter_s5k6aafx_vreg_on(void)
 {
 	int rc = 0;
-	
+
 	pr_info("[CAM] %s\n", __func__);
 	/* main / 2nd camera analog power */
 	rc = camera_sensor_power_enable("8901_l6", 2850000, &shooter_reg_8901_l6);
@@ -1576,7 +1577,7 @@ static int Shooter_s5k6aafx_vreg_on(void)
 static int Shooter_s5k6aafx_vreg_off(void)
 {
 	int rc = 0;
-	
+
 	pr_info("[CAM] %s\n", __func__);
 
 	if (system_rev == 0x80) {/*VERSION A*/
@@ -1626,7 +1627,6 @@ static int shooter_config_camera_on_gpios(void)
 		config_gpio_table(camera_on_gpio_table_sp3d,
 			ARRAY_SIZE(camera_on_gpio_table_sp3d));
 	}
-
 	return 0;
 }
 
@@ -1647,23 +1647,23 @@ static void shooter_config_camera_off_gpios(void)
 }
 
 static struct msm_camera_device_platform_data msm_camera_device_data = {
-	.camera_gpio_on  = shooter_config_camera_on_gpios,
-	.camera_gpio_off = shooter_config_camera_off_gpios,
-	.ioext.csiphy = 0x04800000,
-	.ioext.csisz  = 0x00000400,
-	.ioext.csiirq = CSI_0_IRQ,
-	.ioclk.mclk_clk_rate = 24000000,
-	.ioclk.vfe_clk_rate  = 228570000,
+	.camera_gpio_on		= shooter_config_camera_on_gpios,
+	.camera_gpio_off	= shooter_config_camera_off_gpios,
+	.ioext.csiphy		= 0x04800000,
+	.ioext.csisz		= 0x00000400,
+	.ioext.csiirq		= CSI_0_IRQ,
+	.ioclk.mclk_clk_rate	= 24000000,
+	.ioclk.vfe_clk_rate	= 228570000,
 };
 
 static struct msm_camera_device_platform_data msm_camera_device_data_web_cam = {
-	.camera_gpio_on  = shooter_config_camera_on_gpios,
-	.camera_gpio_off = shooter_config_camera_off_gpios,
-	.ioext.csiphy = 0x04900000,
-	.ioext.csisz  = 0x00000400,
-	.ioext.csiirq = CSI_1_IRQ,
-	.ioclk.mclk_clk_rate = 24000000,
-	.ioclk.vfe_clk_rate  = 228570000,
+	.camera_gpio_on		= shooter_config_camera_on_gpios,
+	.camera_gpio_off	= shooter_config_camera_off_gpios,
+	.ioext.csiphy		= 0x04900000,
+	.ioext.csisz		= 0x00000400,
+	.ioext.csiirq		= CSI_1_IRQ,
+	.ioclk.mclk_clk_rate	= 24000000,
+	.ioclk.vfe_clk_rate	= 228570000,
 };
 
 struct resource msm_camera_resources[] = {
@@ -1701,13 +1701,13 @@ static int flashlight_control(int mode)
 #endif
 }
 static struct msm_camera_sensor_flash_src msm_flash_src = {
-	.flash_sr_type				= MSM_CAMERA_FLASH_SRC_CURRENT_DRIVER,
-	.camera_flash				= flashlight_control,
+	.flash_sr_type	= MSM_CAMERA_FLASH_SRC_CURRENT_DRIVER,
+	.camera_flash	= flashlight_control,
 };
 
 static struct camera_flash_cfg msm_camera_sensor_flash_cfg = {
-	.low_temp_limit		= 10,
-	.low_cap_limit		= 15,
+	.low_temp_limit	= 10,
+	.low_cap_limit	= 15,
 };
 
 #ifdef CONFIG_SP3D
@@ -1719,16 +1719,16 @@ static struct msm_camera_sensor_flash_data flash_sp3d = {
 static struct msm_camera_sensor_info msm_camera_sensor_sp3d_data = {
 	.sensor_name		= "sp3d",
 	.vcm_enable		= 0,
-	.camera_power_on 	= Shooter_sp3d_vreg_on,
-	.camera_power_off 	= Shooter_sp3d_vreg_off,
-	.camera_clk_switch 	= Shooter_maincam_clk_switch,
+	.camera_power_on	= Shooter_sp3d_vreg_on,
+	.camera_power_off	= Shooter_sp3d_vreg_off,
+	.camera_clk_switch	= Shooter_maincam_clk_switch,
 	.pdata			= &msm_camera_device_data,
 	.resource		= msm_camera_resources,
 	.num_resources		= ARRAY_SIZE(msm_camera_resources),
 	.flash_data		= &flash_sp3d,
-	.flash_cfg 		= &msm_camera_sensor_flash_cfg,
-	.stereo_low_cap_limit 	= 15,
-	.mirror_mode 		= 0,
+	.flash_cfg		= &msm_camera_sensor_flash_cfg,
+	.stereo_low_cap_limit	= 15,
+	.mirror_mode		= 0,
 	.csi_if			= 1,
 	.dev_node		= 0
 };
@@ -1752,15 +1752,15 @@ static struct msm_camera_sensor_info msm_camera_sensor_qs_s5k4e1_data = {
 	.sensor_name		= "qs_s5k4e1",
 	.sensor_reset		= SHOOTER_S5K4E1_PD,
 	.vcm_enable		= 0,
-	.camera_power_on 	= Shooter_qs_s5k4e1_vreg_on,
-	.camera_power_off 	= Shooter_qs_s5k4e1_vreg_off,
-	.camera_clk_switch 	= Shooter_maincam_clk_switch,
+	.camera_power_on	= Shooter_qs_s5k4e1_vreg_on,
+	.camera_power_off	= Shooter_qs_s5k4e1_vreg_off,
+	.camera_clk_switch	= Shooter_maincam_clk_switch,
 	.pdata			= &msm_camera_device_data,
 	.resource		= msm_camera_resources,
 	.num_resources		= ARRAY_SIZE(msm_camera_resources),
 	.flash_data		= &flash_qs_s5k4e1,
-	.flash_cfg 		= &msm_camera_sensor_flash_cfg,
-	.stereo_low_cap_limit 	= 15,
+	.flash_cfg		= &msm_camera_sensor_flash_cfg,
+	.stereo_low_cap_limit	= 15,
 	.csi_if			= 1,
 	.dev_node		= 0,
 	.eeprom_data		= eeprom_data,
@@ -1782,14 +1782,14 @@ static struct msm_camera_sensor_info msm_camera_sensor_s5k6aafx_data = {
 	.sensor_reset		= SHOOTER_WEBCAM_RST,/*2nd Cam RST*/
 	.sensor_pwd		= SHOOTER_WEBCAM_STB,/*2nd Cam PWD*/
 	.vcm_enable		= 0,
-	.camera_power_on 	= Shooter_s5k6aafx_vreg_on,
-	.camera_power_off 	= Shooter_s5k6aafx_vreg_off,
-	.camera_clk_switch 	= Shooter_seccam_clk_switch,
+	.camera_power_on	= Shooter_s5k6aafx_vreg_on,
+	.camera_power_off	= Shooter_s5k6aafx_vreg_off,
+	.camera_clk_switch	= Shooter_seccam_clk_switch,
 	.pdata			= &msm_camera_device_data_web_cam,
 	.resource		= msm_camera_resources,
 	.num_resources		= ARRAY_SIZE(msm_camera_resources),
-	.flash_data             = &flash_s5k6aafx,
-	.mirror_mode 		= 0,
+	.flash_data		= &flash_s5k6aafx,
+	.mirror_mode		= 0,
 	.csi_if			= 1,
 	.dev_node		= 1
 };
@@ -1951,35 +1951,35 @@ static void gsbi_qup_i2c_gpio_config(int adap_id, int config_type)
 }
 
 static struct msm_i2c_platform_data msm_gsbi4_qup_i2c_pdata = {
-	.clk_freq = 384000,
-	.src_clk_rate = 24000000,
-	.clk = "gsbi_qup_clk",
-	.pclk = "gsbi_pclk",
+	.clk_freq	= 384000,
+	.src_clk_rate	= 24000000,
+	.clk		= "gsbi_qup_clk",
+	.pclk		= "gsbi_pclk",
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
 
 static struct msm_i2c_platform_data msm_gsbi5_qup_i2c_pdata = {
-	.clk_freq = 100000,
-	.src_clk_rate = 24000000,
-	.clk = "gsbi_qup_clk",
-	.pclk = "gsbi_pclk",
+	.clk_freq	= 100000,
+	.src_clk_rate	= 24000000,
+	.clk		= "gsbi_qup_clk",
+	.pclk		= "gsbi_pclk",
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
 
 static struct msm_i2c_platform_data msm_gsbi7_qup_i2c_pdata = {
-	.clk_freq = 100000,
-	.src_clk_rate = 24000000,
-	.clk = "gsbi_qup_clk",
-	.pclk = "gsbi_pclk",
+	.clk_freq	= 100000,
+	.src_clk_rate	= 24000000,
+	.clk		= "gsbi_qup_clk",
+	.pclk		= "gsbi_pclk",
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
 
 
 static struct msm_i2c_platform_data msm_gsbi10_qup_i2c_pdata = {
-	.clk_freq = 384000,
-	.src_clk_rate = 24000000,
-	.clk = "gsbi_qup_clk",
-	.pclk = "gsbi_pclk",
+	.clk_freq	= 384000,
+	.src_clk_rate	= 24000000,
+	.clk		= "gsbi_qup_clk",
+	.pclk		= "gsbi_pclk",
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
 
@@ -2074,51 +2074,51 @@ static struct platform_device shooter_3Dpanel_device = {
 
 #ifdef CONFIG_ANDROID_PMEM
 static struct android_pmem_platform_data android_pmem_pdata = {
-	.name = "pmem",
-	.allocator_type = PMEM_ALLOCATORTYPE_ALLORNOTHING,
-	.cached = 1,
+	.name		= "pmem",
+	.allocator_type	= PMEM_ALLOCATORTYPE_ALLORNOTHING,
+	.cached		= 1,
 };
 
 static struct platform_device android_pmem_device = {
-	.name = "android_pmem",
-	.id = 0,
-	.dev = {.platform_data = &android_pmem_pdata},
+	.name	= "android_pmem",
+	.id	= 0,
+	.dev	= {.platform_data = &android_pmem_pdata},
 };
 
 static struct android_pmem_platform_data android_pmem_adsp_pdata = {
-	.name = "pmem_adsp",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 1,
+	.name		= "pmem_adsp",
+	.allocator_type	= PMEM_ALLOCATORTYPE_BITMAP,
+	.cached		= 1,
 };
 
 static struct platform_device android_pmem_adsp_device = {
-	.name = "android_pmem",
-	.id = 2,
-	.dev = { .platform_data = &android_pmem_adsp_pdata },
+	.name	= "android_pmem",
+	.id	= 2,
+	.dev	= { .platform_data = &android_pmem_adsp_pdata },
 };
 
 static struct android_pmem_platform_data android_pmem_adsp2_pdata = {
-       .name = "pmem_adsp2",
-       .allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-       .cached = 0,
+	.name		= "pmem_adsp2",
+	.allocator_type	= PMEM_ALLOCATORTYPE_BITMAP,
+	.cached		= 0,
 };
 
 static struct platform_device android_pmem_adsp2_device = {
-       .name = "android_pmem",
-       .id = 3,
-       .dev = { .platform_data = &android_pmem_adsp2_pdata },
+	.name	= "android_pmem",
+	.id	= 3,
+	.dev	= { .platform_data = &android_pmem_adsp2_pdata },
 };
 
 static struct android_pmem_platform_data android_pmem_audio_pdata = {
-	.name = "pmem_audio",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 0,
+	.name		= "pmem_audio",
+	.allocator_type	= PMEM_ALLOCATORTYPE_BITMAP,
+	.cached		= 0,
 };
 
 static struct platform_device android_pmem_audio_device = {
-	.name = "android_pmem",
-	.id = 4,
-	.dev = { .platform_data = &android_pmem_audio_pdata },
+	.name	= "android_pmem",
+	.id	= 4,
+	.dev	= { .platform_data = &android_pmem_audio_pdata },
 };
 
 #define PMEM_BUS_WIDTH(_bw) \
@@ -2138,9 +2138,9 @@ static struct msm_bus_paths pmem_smi_table[] = {
 };
 
 static struct msm_bus_scale_pdata smi_client_pdata = {
-	.usecase = pmem_smi_table,
-	.num_usecases = ARRAY_SIZE(pmem_smi_table),
-	.name = "pmem_smi",
+	.usecase	= pmem_smi_table,
+	.num_usecases	= ARRAY_SIZE(pmem_smi_table),
+	.name		= "pmem_smi",
 };
 
 void pmem_request_smi_region(void *data)
@@ -2189,17 +2189,17 @@ static int hdmi_core_power(int on, int show);
 static int hdmi_cec_power(int on);
 
 static struct msm_hdmi_platform_data hdmi_msm_data = {
-	.irq = HDMI_IRQ,
-	.enable_5v = hdmi_enable_5v,
-	.core_power = hdmi_core_power,
-	.cec_power = hdmi_cec_power,
+	.irq		= HDMI_IRQ,
+	.enable_5v	= hdmi_enable_5v,
+	.core_power	= hdmi_core_power,
+	.cec_power	= hdmi_cec_power,
 };
 
 static struct platform_device hdmi_msm_device = {
-	.name = "hdmi_msm",
-	.id = 0,
-	.num_resources = ARRAY_SIZE(hdmi_msm_resources),
-	.resource = hdmi_msm_resources,
+	.name		= "hdmi_msm",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(hdmi_msm_resources),
+	.resource	= hdmi_msm_resources,
 	.dev.platform_data = &hdmi_msm_data,
 };
 
@@ -2209,20 +2209,20 @@ static struct platform_device *hdmi_devices[] __initdata = {
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
 
 static struct android_pmem_platform_data android_pmem_smipool_pdata = {
-	.name = "pmem_smipool",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 1,
-	.memory_type = MEMTYPE_SMI,
-	.request_region = pmem_request_smi_region,
-	.release_region = pmem_release_smi_region,
-	.setup_region = pmem_setup_smi_region,
-	.map_on_demand = 1,
+	.name		= "pmem_smipool",
+	.allocator_type	= PMEM_ALLOCATORTYPE_BITMAP,
+	.cached		= 1,
+	.memory_type	= MEMTYPE_SMI,
+	.request_region	= pmem_request_smi_region,
+	.release_region	= pmem_release_smi_region,
+	.setup_region	= pmem_setup_smi_region,
+	.map_on_demand	= 1,
 };
 
 static struct platform_device android_pmem_smipool_device = {
-	.name = "android_pmem",
-	.id = 7,
-	.dev = { .platform_data = &android_pmem_smipool_pdata },
+	.name	= "android_pmem",
+	.id	= 7,
+	.dev	= { .platform_data = &android_pmem_smipool_pdata },
 };
 #endif
 
@@ -2237,10 +2237,10 @@ struct persistent_ram_descriptor ram_console_desc = {
 };
 
 struct persistent_ram ram_console_ram = {
-	.start = MSM_RAM_CONSOLE_BASE,
-	.size = MSM_RAM_CONSOLE_SIZE,
-	.num_descs = 1,
-	.descs = &ram_console_desc,
+	.start		= MSM_RAM_CONSOLE_BASE,
+	.size		= MSM_RAM_CONSOLE_SIZE,
+	.num_descs	= 1,
+	.descs		= &ram_console_desc,
 };
 
 static void __init msm8x60_allocate_memory_regions(void)
@@ -2698,15 +2698,15 @@ static struct regulator_consumer_supply vreg_consumers_PM8901_S4_PC[] = {
 			.num_consumer_supplies = \
 				ARRAY_SIZE(vreg_consumers_##_id), \
 		}, \
-		.id			= RPM_VREG_ID_##_id, \
+		.id = RPM_VREG_ID_##_id, \
 		.default_uV = _default_uV, \
 		.peak_uA = _peak_uA, \
 		.avg_uA = _avg_uA, \
 		.pull_down_enable = _pull_down, \
 		.pin_ctrl = _pin_ctrl, \
-		.freq			= RPM_VREG_FREQ_##_freq, \
+		.freq = RPM_VREG_FREQ_##_freq, \
 		.pin_fn = _pin_fn, \
-		.force_mode		= _force_mode, \
+		.force_mode = _force_mode, \
 		.state = _state, \
 		.sleep_selectable = _sleep_selectable, \
 	}
@@ -2717,14 +2717,14 @@ static struct regulator_consumer_supply vreg_consumers_PM8901_S4_PC[] = {
 		.init_data = { \
 			.constraints = { \
 				.valid_ops_mask	= REGULATOR_CHANGE_STATUS, \
-				.always_on	= _always_on, \
+				.always_on = _always_on, \
 			}, \
-			.num_consumer_supplies	= \
+			.num_consumer_supplies = \
 					ARRAY_SIZE(vreg_consumers_##_id##_PC), \
-			.consumer_supplies	= vreg_consumers_##_id##_PC, \
+			.consumer_supplies = vreg_consumers_##_id##_PC, \
 		}, \
-		.id	  = RPM_VREG_ID_##_id##_PC, \
-		.pin_fn	  = RPM_VREG_PIN_FN_8660_##_pin_fn, \
+		.id = RPM_VREG_ID_##_id##_PC, \
+		.pin_fn = RPM_VREG_PIN_FN_8660_##_pin_fn, \
 		.pin_ctrl = _pin_ctrl, \
 	}
 
@@ -3007,9 +3007,9 @@ static struct msm_adc_platform_data msm_adc_pdata = {
 };
 
 static struct platform_device msm_adc_device = {
-	.name   = "msm_adc",
-	.id = -1,
-	.dev = {
+	.name	= "msm_adc",
+	.id	= -1,
+	.dev	= {
 		.platform_data = &msm_adc_pdata,
 	},
 };
@@ -3139,13 +3139,13 @@ struct vddp_reg {
 };
 
 struct vddp_reg vddp_reg_headset = {
-	.reg_name = "8058_l5",
+	.reg_name	 = "8058_l5",
 	.set_voltage_sup = 1,
-	.level = 2850000,
-	.always_on = 1,
+	.level		 = 2850000,
+	.always_on	 = 1,
 	.op_pwr_mode_sup = 1,
-	.lpm_uA = 2000,
-	.hpm_uA = 16000,
+	.lpm_uA		 = 2000,
+	.hpm_uA		 = 16000,
 };
 
 static int headset_vddp_init_reg(struct vddp_reg *vreg)
@@ -3324,36 +3324,36 @@ static struct platform_device cable_detect_device = {
 
 static struct pm8058_led_config pm_led_config[] = {
 	{
-		.name = "green",
-		.type = PM8058_LED_RGB,
-		.bank = 0,
-		.pwm_size = 9,
-		.clk = PM_PWM_CLK_32KHZ,
-		.pre_div = PM_PWM_PREDIVIDE_2,
-		.pre_div_exp = 1,
-		.pwm_value = 511,
+		.name		= "green",
+		.type		= PM8058_LED_RGB,
+		.bank		= 0,
+		.pwm_size	= 9,
+		.clk		= PM_PWM_CLK_32KHZ,
+		.pre_div	= PM_PWM_PREDIVIDE_2,
+		.pre_div_exp	= 1,
+		.pwm_value	= 511,
 	},
 	{
-		.name = "amber",
-		.type = PM8058_LED_RGB,
-		.bank = 1,
-		.pwm_size = 9,
-		.clk = PM_PWM_CLK_32KHZ,
-		.pre_div = PM_PWM_PREDIVIDE_2,
-		.pre_div_exp = 1,
-		.pwm_value = 511,
+		.name		= "amber",
+		.type		= PM8058_LED_RGB,
+		.bank		= 1,
+		.pwm_size	= 9,
+		.clk		= PM_PWM_CLK_32KHZ,
+		.pre_div	= PM_PWM_PREDIVIDE_2,
+		.pre_div_exp	= 1,
+		.pwm_value	= 511,
 	},
 	{
-		.name = "button-backlight",
-		.type = PM8058_LED_DRVX,
-		.bank = 6,
-		.flags = PM8058_LED_LTU_EN,
-		.period_us = USEC_PER_SEC / 1000,
-		.start_index = 0,
-		.duites_size = 8,
-		.duty_time_ms = 32,
-		.lut_flag = PM_PWM_LUT_RAMP_UP | PM_PWM_LUT_PAUSE_HI_EN,
-		.out_current = 10,
+		.name		= "button-backlight",
+		.type		= PM8058_LED_DRVX,
+		.bank		= 6,
+		.flags		= PM8058_LED_LTU_EN,
+		.period_us	= USEC_PER_SEC / 1000,
+		.start_index	= 0,
+		.duites_size	= 8,
+		.duty_time_ms	= 32,
+		.lut_flag	= PM_PWM_LUT_RAMP_UP | PM_PWM_LUT_PAUSE_HI_EN,
+		.out_current	= 10,
 	},
 };
 
@@ -3496,6 +3496,7 @@ static uint32_t mhl_gpio_table[] = {
 	GPIO_CFG(shooter_GPIO_MHL_RESET, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(shooter_GPIO_MHL_INT, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
 };
+
 static int mhl_sii9234_power(int on)
 {
 	int rc = 0;
@@ -3517,14 +3518,14 @@ static int mhl_sii9234_power(int on)
 }
 
 static T_MHL_PLATFORM_DATA mhl_sii9234_device_data = {
-	.gpio_intr = shooter_GPIO_MHL_INT,
-	.gpio_reset = shooter_GPIO_MHL_RESET,
-	.ci2ca = 0,
+	.gpio_intr	= shooter_GPIO_MHL_INT,
+	.gpio_reset	= shooter_GPIO_MHL_RESET,
+	.ci2ca		= 0,
 	#ifdef CONFIG_FB_MSM_HDMI_MHL
-	.mhl_usb_switch		= shooter_usb_dpdn_switch,
-	.mhl_1v2_power = mhl_sii9234_1v2_power,
+	.mhl_usb_switch	= shooter_usb_dpdn_switch,
+	.mhl_1v2_power	= mhl_sii9234_1v2_power,
 	#endif
-	.power = mhl_sii9234_power,
+	.power		= mhl_sii9234_power,
 };
 
 static struct i2c_board_info msm_i2c_gsbi7_mhl_sii9234_info[] =
@@ -3658,20 +3659,20 @@ static struct memtype_reserve msm8x60_reserve_table[] __initdata = {
 	/* SMI memory pool, as the video core will use offset address */
 	/* from the Firmware base */
 	[MEMTYPE_SMI_KERNEL] = {
-		.start	=	KERNEL_SMI_BASE,
-		.limit	=	KERNEL_SMI_SIZE,
-		.size	=	KERNEL_SMI_SIZE,
-		.flags	=	MEMTYPE_FLAGS_FIXED,
+		.start	= KERNEL_SMI_BASE,
+		.limit	= KERNEL_SMI_SIZE,
+		.size	= KERNEL_SMI_SIZE,
+		.flags	= MEMTYPE_FLAGS_FIXED,
 	},
 	/* User space SMI memory pool for video core */
 	/* used for encoder, decoder input & output buffers  */
 	[MEMTYPE_SMI] = {
-		.start	=	USER_SMI_BASE,
-		.limit	=	USER_SMI_SIZE,
-		.flags	=	MEMTYPE_FLAGS_FIXED,
+		.start	= USER_SMI_BASE,
+		.limit	= USER_SMI_SIZE,
+		.flags	= MEMTYPE_FLAGS_FIXED,
 	},
 	[MEMTYPE_EBI0] = {
-		.flags	=	MEMTYPE_FLAGS_1M_ALIGN,
+		.flags	= MEMTYPE_FLAGS_1M_ALIGN,
 	},
 };
 
@@ -3828,10 +3829,10 @@ static int pm8058_gpios_init(void)
 		{
 			PM8058_GPIO_PM_TO_SYS(SHOOTER_PLS_INT),
 			{
-				.direction		= PM_GPIO_DIR_IN,
-				.pull			= PM_GPIO_PULL_UP_1P5,
-				.vin_sel		= PM8058_GPIO_VIN_L5,
-				.function		= PM_GPIO_FUNC_NORMAL,
+				.direction	= PM_GPIO_DIR_IN,
+				.pull		= PM_GPIO_PULL_UP_1P5,
+				.vin_sel	= PM8058_GPIO_VIN_L5,
+				.function	= PM_GPIO_FUNC_NORMAL,
 				.inv_int_pol	= 0,
 			},
 		},
@@ -4010,7 +4011,6 @@ static struct othc_accessory_info othc_accessories[]  = {
 	},
 };
 
-
 static struct othc_switch_info switch_info[] = {
 	{
 		.min_adc_threshold = 0,
@@ -4073,9 +4073,9 @@ static struct othc_hsed_config hsed_config_1 = {
 };
 
 static struct othc_regulator_config othc_reg = {
-	.regulator	 = "8058_l5",
-	.max_uV		 = 2850000,
-	.min_uV		 = 2850000,
+	.regulator	= "8058_l5",
+	.max_uV		= 2850000,
+	.min_uV		= 2850000,
 };
 
 /* MIC_BIAS0 is configured as normal MIC BIAS */
@@ -4218,11 +4218,11 @@ static struct pm8xxx_irq_platform_data pm8058_irq_pdata = {
 };
 
 static struct pm8xxx_gpio_platform_data pm8058_gpio_pdata = {
-	.gpio_base	= PM8058_GPIO_PM_TO_SYS(0),
+	.gpio_base		= PM8058_GPIO_PM_TO_SYS(0),
 };
 
 static struct pm8xxx_mpp_platform_data pm8058_mpp_pdata = {
-	.mpp_base	= PM8058_MPP_PM_TO_SYS(0),
+	.mpp_base		= PM8058_MPP_PM_TO_SYS(0),
 };
 
 static struct pm8058_platform_data pm8058_platform_data = {
@@ -4255,8 +4255,8 @@ static struct pm8058_platform_data pm8058_platform_data = {
 static struct msm_ssbi_platform_data msm8x60_ssbi_pm8058_pdata __devinitdata = {
 	.controller_type = MSM_SBI_CTRL_PMIC_ARBITER,
 	.slave	= {
-		.name			= "pm8058-core",
-		.platform_data		= &pm8058_platform_data,
+		.name		= "pm8058-core",
+		.platform_data	= &pm8058_platform_data,
 	},
 };
 #endif
@@ -4363,7 +4363,6 @@ static int tdisc_shinetsu_enable(void)
 	gpio_set_value_cansleep(GPIO_JOYSTICK_EN, 1);
 	/* voltage and gpio stabilization delay */
 	msleep(50);
-
 	return 0;
 vreg_fail:
 	while (i)
@@ -4386,7 +4385,6 @@ static int tdisc_shinetsu_disable(void)
 
 	/* Disable the OE (output enable) gpio */
 	gpio_set_value_cansleep(GPIO_JOYSTICK_EN, 0);
-
 	return 0;
 
 tdisc_reg_fail:
@@ -4396,28 +4394,28 @@ tdisc_reg_fail:
 }
 
 static struct tdisc_abs_values tdisc_abs = {
-	.x_max = 32,
-	.y_max = 32,
-	.x_min = -32,
-	.y_min = -32,
-	.pressure_max = 32,
-	.pressure_min = 0,
+	.x_max		= 32,
+	.y_max		= 32,
+	.x_min		= -32,
+	.y_min		= -32,
+	.pressure_max	= 32,
+	.pressure_min	= 0,
 };
 
 static struct tdisc_platform_data tdisc_data = {
-	.tdisc_setup = tdisc_shinetsu_setup,
-	.tdisc_release = tdisc_shinetsu_release,
-	.tdisc_enable = tdisc_shinetsu_enable,
-	.tdisc_disable = tdisc_shinetsu_disable,
-	.tdisc_wakeup  = 0,
-	.tdisc_gpio = PMIC_GPIO_TDISC,
-	.tdisc_report_keys = true,
-	.tdisc_report_relative = true,
-	.tdisc_report_absolute = false,
-	.tdisc_report_wheel = false,
-	.tdisc_reverse_x = false,
-	.tdisc_reverse_y = true,
-	.tdisc_abs  = &tdisc_abs,
+	.tdisc_setup		= tdisc_shinetsu_setup,
+	.tdisc_release		= tdisc_shinetsu_release,
+	.tdisc_enable		= tdisc_shinetsu_enable,
+	.tdisc_disable		= tdisc_shinetsu_disable,
+	.tdisc_wakeup		= 0,
+	.tdisc_gpio		= PMIC_GPIO_TDISC,
+	.tdisc_report_keys	= true,
+	.tdisc_report_relative	= true,
+	.tdisc_report_absolute	= false,
+	.tdisc_report_wheel	= false,
+	.tdisc_reverse_x	= false,
+	.tdisc_reverse_y	= true,
+	.tdisc_abs		= &tdisc_abs,
 };
 
 static struct i2c_board_info msm_i2c_gsbi3_tdisc_info[] = {
@@ -4712,14 +4710,14 @@ static struct pm8901_gpio_platform_data pm8901_mpp_data = {
 
 static struct resource pm8901_temp_alarm[] = {
 	{
-		.start = PM8901_TEMP_ALARM_IRQ(PM8901_IRQ_BASE),
-		.end = PM8901_TEMP_ALARM_IRQ(PM8901_IRQ_BASE),
-		.flags = IORESOURCE_IRQ,
+		.start	= PM8901_TEMP_ALARM_IRQ(PM8901_IRQ_BASE),
+		.end	= PM8901_TEMP_ALARM_IRQ(PM8901_IRQ_BASE),
+		.flags	= IORESOURCE_IRQ,
 	},
 	{
-		.start = PM8901_TEMP_HI_ALARM_IRQ(PM8901_IRQ_BASE),
-		.end = PM8901_TEMP_HI_ALARM_IRQ(PM8901_IRQ_BASE),
-		.flags = IORESOURCE_IRQ,
+		.start	= PM8901_TEMP_HI_ALARM_IRQ(PM8901_IRQ_BASE),
+		.end	= PM8901_TEMP_HI_ALARM_IRQ(PM8901_IRQ_BASE),
+		.flags	= IORESOURCE_IRQ,
 	},
 };
 
@@ -4845,7 +4843,6 @@ enum version{
 };
 #endif /* CONFIG_MAIMBA_CORE */
 
-
 static int isl29028_power(int pwr_device, uint8_t enable)
 {
 	return 0;
@@ -4952,12 +4949,12 @@ static struct i2c_board_info __initdata mpu3050_GSBI10_boardinfo_XC[] = {
 };
 
 #ifdef CONFIG_I2C
-#define I2C_SURF 1
-#define I2C_FFA  (1 << 1)
-#define I2C_RUMI (1 << 2)
-#define I2C_SIM  (1 << 3)
-#define I2C_FLUID (1 << 4)
-#define I2C_DRAGON (1 << 5)
+#define I2C_SURF	1
+#define I2C_FFA		(1 << 1)
+#define I2C_RUMI	(1 << 2)
+#define I2C_SIM		(1 << 3)
+#define I2C_FLUID	(1 << 4)
+#define I2C_DRAGON	(1 << 5)
 
 struct i2c_registry {
 	u8                     machs;
@@ -5011,14 +5008,12 @@ static struct i2c_registry msm8x60_i2c_devices[] __initdata = {
 #endif
 #ifdef CONFIG_FB_MSM_HDMI_MHL
 #ifdef CONFIG_FB_MSM_HDMI_MHL_SII9234
-
 	{
 		I2C_SURF | I2C_FFA,
 		MSM_GSBI7_QUP_I2C_BUS_ID,
 		msm_i2c_gsbi7_mhl_sii9234_info,
 		ARRAY_SIZE(msm_i2c_gsbi7_mhl_sii9234_info),
 	},
-
 #endif
 #endif
 #if 0
@@ -5315,7 +5310,6 @@ struct msm_sdcc_pin_cfg {
 	u8 pad_pull_data_size;
 	u8 sdio_lpm_gpio_cfg;
 };
-
 
 static struct msm_sdcc_pin_cfg sdcc_pin_cfg_data[MAX_SDCC_CONTROLLER] = {
 #ifdef CONFIG_MMC_MSM_SDC1_SUPPORT
@@ -6150,6 +6144,7 @@ static struct regulator *reg_8058_l13;
 static int atv_dac_power(int on)
 {
 	int rc = 0;
+
 	#define _GET_REGULATOR(var, name) do {				\
 		var = regulator_get(NULL, name);			\
 		if (IS_ERR(var)) {					\
@@ -6423,7 +6418,7 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	spi_register_board_info(sp3d_spi_board_info,
 			ARRAY_SIZE(sp3d_spi_board_info));
 
-	 /* Buses need to be initialized before early-device registration
+	/* Buses need to be initialized before early-device registration
 	 * to get the platform data for fabrics.
 	 */
 	msm8x60_init_buses();

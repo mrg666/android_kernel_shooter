@@ -1396,6 +1396,7 @@ static void shooter_set_gpio(int gpio, int state)
 static int Shooter_sp3d_vreg_on(void)
 {
 	int rc = 0;
+
 	pr_info("[CAM] %s\n", __func__);
 	/* VDDIO*/
 	if (system_rev == 2 && engineerid >= 3) {/*VERSION A*/
@@ -1434,6 +1435,7 @@ static int Shooter_sp3d_vreg_on(void)
 static int Shooter_sp3d_vreg_off(void)
 {
 	int rc;
+
 	pr_info("[CAM] %s\n", __func__);
 	shooter_set_gpio(SHOOTER_SP3D_PDX, 0); /* PDX */
 	/* main camera MVDD */
@@ -1470,6 +1472,7 @@ static int Shooter_sp3d_vreg_off(void)
 static int Shooter_qs_s5k4e1_vreg_on(void)
 {
 	int rc;
+
 	pr_info("[CAM] %s\n", __func__);
 	mdelay(50);
 
@@ -1508,6 +1511,7 @@ static int Shooter_qs_s5k4e1_vreg_on(void)
 static int Shooter_qs_s5k4e1_vreg_off(void)
 {
 	int rc;
+
 	pr_info("[CAM] %s\n", __func__);
 	shooter_set_gpio(SHOOTER_S5K4E1_INTB, 0); /* interrupt */
 	shooter_set_gpio(SHOOTER_S5K4E1_VCM_PD, 0); /* PDX */
@@ -1543,6 +1547,7 @@ static int Shooter_qs_s5k4e1_vreg_off(void)
 static int Shooter_s5k6aafx_vreg_on(void)
 {
 	int rc;
+
 	pr_info("[CAM] %s\n", __func__);
 	/* main / 2nd camera analog power */
 	rc = camera_sensor_power_enable("8058_l3", 2850000, &shooter_reg_8058_l3);
@@ -1572,6 +1577,7 @@ static int Shooter_s5k6aafx_vreg_on(void)
 static int Shooter_s5k6aafx_vreg_off(void)
 {
 	int rc;
+
 	pr_info("[CAM] %s\n", __func__);
 	/* IO power off */
 	if (system_rev == 2 && engineerid >= 3) {
@@ -1778,7 +1784,7 @@ static struct msm_camera_sensor_info msm_camera_sensor_s5k6aafx_data = {
 	.pdata			= &msm_camera_device_data_web_cam,
 	.resource		= msm_camera_resources,
 	.num_resources		= ARRAY_SIZE(msm_camera_resources),
-	.flash_data             = &flash_s5k6aafx,
+	.flash_data		= &flash_s5k6aafx,
 	.mirror_mode		= 0,
 	.csi_if			= 1,
 	.dev_node		= 1,
@@ -2088,21 +2094,21 @@ static struct platform_device android_pmem_adsp_device = {
 };
 
 static struct android_pmem_platform_data android_pmem_adsp2_pdata = {
-       .name		= "pmem_adsp2",
-       .allocator_type	= PMEM_ALLOCATORTYPE_BITMAP,
-       .cached		= 0,
+	.name		= "pmem_adsp2",
+	.allocator_type	= PMEM_ALLOCATORTYPE_BITMAP,
+	.cached		= 0,
 };
 
 static struct platform_device android_pmem_adsp2_device = {
-       .name	= "android_pmem",
-       .id	= 3,
-       .dev	= { .platform_data = &android_pmem_adsp2_pdata },
+	.name	= "android_pmem",
+	.id	= 3,
+	.dev	= { .platform_data = &android_pmem_adsp2_pdata },
 };
 
 static struct android_pmem_platform_data android_pmem_audio_pdata = {
-	.name = "pmem_audio",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 0,
+	.name		= "pmem_audio",
+	.allocator_type	= PMEM_ALLOCATORTYPE_BITMAP,
+	.cached		= 0,
 };
 
 static struct platform_device android_pmem_audio_device = {
@@ -2179,17 +2185,17 @@ static int hdmi_core_power(int on, int show);
 static int hdmi_cec_power(int on);
 
 static struct msm_hdmi_platform_data hdmi_msm_data = {
-	.irq = HDMI_IRQ,
-	.enable_5v = hdmi_enable_5v,
-	.core_power = hdmi_core_power,
-	.cec_power = hdmi_cec_power,
+	.irq		= HDMI_IRQ,
+	.enable_5v	= hdmi_enable_5v,
+	.core_power	= hdmi_core_power,
+	.cec_power	= hdmi_cec_power,
 };
 
 static struct platform_device hdmi_msm_device = {
-	.name = "hdmi_msm",
-	.id = 0,
-	.num_resources = ARRAY_SIZE(hdmi_msm_resources),
-	.resource = hdmi_msm_resources,
+	.name		= "hdmi_msm",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(hdmi_msm_resources),
+	.resource	= hdmi_msm_resources,
 	.dev.platform_data = &hdmi_msm_data,
 };
 
@@ -2210,9 +2216,9 @@ static struct android_pmem_platform_data android_pmem_smipool_pdata = {
 };
 
 static struct platform_device android_pmem_smipool_device = {
-	.name = "android_pmem",
-	.id = 7,
-	.dev = { .platform_data = &android_pmem_smipool_pdata },
+	.name	= "android_pmem",
+	.id	= 7,
+	.dev	= { .platform_data = &android_pmem_smipool_pdata },
 };
 #endif
 
@@ -2227,10 +2233,10 @@ struct persistent_ram_descriptor ram_console_desc = {
 };
 
 struct persistent_ram ram_console_ram = {
-	.start = MSM_RAM_CONSOLE_BASE,
-	.size = MSM_RAM_CONSOLE_SIZE,
-	.num_descs = 1,
-	.descs = &ram_console_desc,
+	.start		= MSM_RAM_CONSOLE_BASE,
+	.size		= MSM_RAM_CONSOLE_SIZE,
+	.num_descs	= 1,
+	.descs		= &ram_console_desc,
 };
 
 static void __init msm8x60_allocate_memory_regions(void)
@@ -2688,7 +2694,7 @@ static struct regulator_consumer_supply vreg_consumers_PM8901_S4_PC[] = {
 			.num_consumer_supplies = \
 				ARRAY_SIZE(vreg_consumers_##_id), \
 		}, \
-		.id			= RPM_VREG_ID_##_id, \
+		.id = RPM_VREG_ID_##_id, \
 		.default_uV = _default_uV, \
 		.peak_uA = _peak_uA, \
 		.avg_uA = _avg_uA, \
@@ -2707,14 +2713,14 @@ static struct regulator_consumer_supply vreg_consumers_PM8901_S4_PC[] = {
 		.init_data = { \
 			.constraints = { \
 				.valid_ops_mask	= REGULATOR_CHANGE_STATUS, \
-				.always_on	= _always_on, \
+				.always_on = _always_on, \
 			}, \
-			.num_consumer_supplies	= \
+			.num_consumer_supplies = \
 					ARRAY_SIZE(vreg_consumers_##_id##_PC), \
-			.consumer_supplies	= vreg_consumers_##_id##_PC, \
+			.consumer_supplies = vreg_consumers_##_id##_PC, \
 		}, \
-		.id	  = RPM_VREG_ID_##_id##_PC, \
-		.pin_fn	  = RPM_VREG_PIN_FN_8660_##_pin_fn, \
+		.id = RPM_VREG_ID_##_id##_PC, \
+		.pin_fn = RPM_VREG_PIN_FN_8660_##_pin_fn, \
 		.pin_ctrl = _pin_ctrl, \
 	}
 
@@ -3334,7 +3340,7 @@ static struct pm8058_led_config pm_led_config[] = {
 		.pwm_value	= 511,
 	},
 	{
-		.name = "button-backlight",
+		.name		= "button-backlight",
 		.type		= PM8058_LED_DRVX,
 		.bank		= 6,
 		.flags		= PM8058_LED_LTU_EN,
@@ -3345,7 +3351,6 @@ static struct pm8058_led_config pm_led_config[] = {
 		.lut_flag	= PM_PWM_LUT_RAMP_UP | PM_PWM_LUT_PAUSE_HI_EN,
 		.out_current	= 10,
 	},
-
 };
 
 static struct pm8058_led_platform_data pm8058_leds_data = {
@@ -3478,7 +3483,6 @@ static int mhl_sii9234_all_power(bool enable)
 				"reg_8901_l0", rc);
 		pr_info("%s(off): success\n", __func__);
 	}
-
 	prev_on = enable;
 	return 0;
 }
@@ -4165,7 +4169,6 @@ static int pm8058_pwm_config(struct pwm_device *pwm, int ch, int on)
 			       __func__, ch, rc);
 	}
 	return rc;
-
 }
 
 static struct pm8058_pwm_pdata pm8058_pwm_data = {
@@ -4214,11 +4217,11 @@ static struct pm8xxx_irq_platform_data pm8058_irq_pdata = {
 };
 
 static struct pm8xxx_gpio_platform_data pm8058_gpio_pdata = {
-	.gpio_base = PM8058_GPIO_PM_TO_SYS(0),
+	.gpio_base		= PM8058_GPIO_PM_TO_SYS(0),
 };
 
 static struct pm8xxx_mpp_platform_data pm8058_mpp_pdata = {
-	.mpp_base = PM8058_MPP_PM_TO_SYS(0),
+	.mpp_base		= PM8058_MPP_PM_TO_SYS(0),
 };
 
 static struct pm8058_platform_data pm8058_platform_data = {
@@ -4320,7 +4323,6 @@ static int tdisc_shinetsu_setup(void)
 			goto vreg_set_voltage_fail;
 		}
 	}
-
 	return rc;
 vreg_set_voltage_fail:
 	i++;
@@ -4972,7 +4974,7 @@ static struct i2c_registry msm8x60_i2c_devices[] __initdata = {
 #endif
 #endif /*CONFIG_MSM_SSBI */
 #ifdef CONFIG_MSM_CAMERA
-    {
+	{
 		I2C_SURF | I2C_FFA,
 		MSM_GSBI4_QUP_I2C_BUS_ID,
 		msm_camera_boardinfo,
@@ -5005,14 +5007,12 @@ static struct i2c_registry msm8x60_i2c_devices[] __initdata = {
 #endif
 #ifdef CONFIG_FB_MSM_HDMI_MHL
 #ifdef CONFIG_FB_MSM_HDMI_MHL_SII9234
-
 	{
 		I2C_SURF | I2C_FFA,
 		MSM_GSBI7_QUP_I2C_BUS_ID,
 		msm_i2c_gsbi7_mhl_sii9234_info,
 		ARRAY_SIZE(msm_i2c_gsbi7_mhl_sii9234_info),
 	},
-
 #endif
 #endif
 #if 0
@@ -6146,6 +6146,7 @@ static struct regulator *reg_8058_l13;
 static int atv_dac_power(int on)
 {
 	int rc = 0;
+
 	#define _GET_REGULATOR(var, name) do {				\
 		var = regulator_get(NULL, name);			\
 		if (IS_ERR(var)) {					\

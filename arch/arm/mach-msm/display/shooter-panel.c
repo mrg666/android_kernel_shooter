@@ -117,9 +117,9 @@ static void shooter_panel_power(int onoff)
 		}
 
 		if (isorise == 0)
-			ret = regulator_set_voltage(l12_3v, 3000000, 3000000);
+			ret = regulator_set_voltage(l12_3v, 2850000, 2850000);
 		else
-			ret = regulator_set_voltage(l12_3v, 3200000, 3200000);
+			ret = regulator_set_voltage(l12_3v, 3050000, 3050000);
 		if (ret) {
 			pr_err("%s: error setting l12_3v voltage\n", __func__);
 			goto fail;
@@ -417,8 +417,8 @@ static struct mipi_dsi_platform_data mipi_pdata = {
 	.dsi_power_save   = mipi_panel_power,
 };
 
-#define BRI_SETTING_MIN		30
-#define BRI_SETTING_DEF		143
+#define BRI_SETTING_MIN		20
+#define BRI_SETTING_DEF		113
 #define BRI_SETTING_MAX		255
 
 #define PWM_MIN				8

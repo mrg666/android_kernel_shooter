@@ -3478,7 +3478,7 @@ CIFSSMBSetCIFSACL(const int xid, struct cifs_tcon *tcon, __u16 fid,
 setCifsAclRetry:
 	rc = smb_init(SMB_COM_NT_TRANSACT, 19, tcon, (void **) &pSMB, &pSMBr);
 	if (rc)
-		return (rc);
+		return rc;
 
 	pSMB->MaxSetupCount = 0;
 	pSMB->Reserved = 0;
@@ -5582,8 +5582,8 @@ CIFSSMBUnixSetFileInfo(const int xid, struct cifs_tcon *tcon,
 	offset = param_offset + params;
 
 	data_offset = (char *)pSMB +
-				offsetof(struct smb_hdr, Protocol) + offset;
-	
+			offsetof(struct smb_hdr, Protocol) + offset;
+
 	count = sizeof(FILE_UNIX_BASIC_INFO);
 
 	pSMB->MaxParameterCount = cpu_to_le16(2);

@@ -12,13 +12,9 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
+ * (at your option) any later version. For more details, see the GNU 
+ * General Public License included with the Linux kernel or available 
+ * at www.gnu.org/licenses
  */
 
 #include <linux/earlysuspend.h>
@@ -40,7 +36,6 @@
 #define MSM_MPDEC_STARTDELAY		20000
 #define MSM_MPDEC_DELAY			100
 #define MSM_MPDEC_PAUSE			10000
-#define MSM_MPDEC_IDLE_FREQ		384000
 
 struct global_attr {
 	struct attribute attr;
@@ -73,14 +68,12 @@ static struct msm_mpdec_tuners {
 	unsigned int delay;
 	unsigned int pause;
 	bool scroff_single_core;
-	unsigned long int idle_freq;
 	unsigned int max_cpus;
 	unsigned int min_cpus;
 } msm_mpdec_tuners_ins = {
 	.delay = MSM_MPDEC_DELAY,
 	.pause = MSM_MPDEC_PAUSE,
 	.scroff_single_core = true,
-	.idle_freq = MSM_MPDEC_IDLE_FREQ,
 	.max_cpus = CONFIG_NR_CPUS,
 	.min_cpus = 1,
 };
@@ -130,18 +123,6 @@ static int get_slowest_cpu(void) {
 }
 #endif
 
-static unsigned long get_slowest_cpu_rate(void) {
-	int cpu;
-	unsigned long rate, slow_rate = 999999999;
-
-	for_each_online_cpu(cpu) {
-		rate = acpuclk_get_rate(cpu);
-		if (rate < slow_rate) 
-			slow_rate = rate;
-	}
-	return slow_rate;
-}
-
 static bool mpdec_cpu_down(int cpu) {
 	bool ret;
 	
@@ -178,7 +159,7 @@ static void rq_work_fn(struct work_struct *work) {
 
 	now = ktime_to_ns(ktime_get());
 	diff = now - rq_info.def_start_time;
-	do_div(diff, 1000 * 1000);
+	do_div(diff, 1000*1000);
 	rq_info.def_interval = (unsigned int) diff;
 	rq_info.def_timer_jiffies = msecs_to_jiffies(rq_info.def_interval);
 	rq_info.def_start_time = now;
@@ -217,31 +198,27 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 	if ((nr_cpu_online < msm_mpdec_tuners_ins.max_cpus) && 
 	    (rq_avg >= NwNs_Threshold[index])) {
 		if (total_time >= TwTs_Threshold[index]) {
-			if (get_slowest_cpu_rate() > msm_mpdec_tuners_ins.idle_freq) {
 #if CONFIG_NR_CPUS > 2
-				cpu = cpumask_next_zero(0, cpu_online_mask);
+			cpu = cpumask_next_zero(0, cpu_online_mask);
 #endif
-				if (per_cpu(msm_mpdec_cpudata, cpu).online == false) {
-					if (mpdec_cpu_up(cpu))
-						total_time = 0;
-					else
-						mpdec_pause(cpu);
-				}
+			if (per_cpu(msm_mpdec_cpudata, cpu).online == false) {
+				if (mpdec_cpu_up(cpu))
+					total_time = 0;
+				else
+					mpdec_pause(cpu);
 			}
 		}
 	} else if ((nr_cpu_online > msm_mpdec_tuners_ins.min_cpus) &&
 		   (rq_avg <= NwNs_Threshold[index+1])) {
 		if (total_time >= TwTs_Threshold[index+1]) {
-			if (get_slowest_cpu_rate() <= msm_mpdec_tuners_ins.idle_freq) {
 #if CONFIG_NR_CPUS > 2
-				cpu = get_slowest_cpu();
+			cpu = get_slowest_cpu();
 #endif
-				if (per_cpu(msm_mpdec_cpudata, cpu).online == true) {
-					if (mpdec_cpu_down(cpu))
-						total_time = 0;
-					else
-						mpdec_pause(cpu);
-				}
+			if (per_cpu(msm_mpdec_cpudata, cpu).online == true) {
+				if (mpdec_cpu_down(cpu))
+					total_time = 0;
+				else
+					mpdec_pause(cpu);
 			}
 		}
 	}
@@ -326,7 +303,7 @@ static struct kernel_param_ops module_ops = {
 module_param_cb(enabled, &module_ops, &enabled, 0644);
 MODULE_PARM_DESC(enabled, "hotplug cpu cores based on demand");
 
-/**************************** SYSFS START ****************************/
+/***************************** SYSFS START *****************************/
 struct kobject *msm_mpdec_kobject;
 
 #define show_one(file_name, object)					\
@@ -335,12 +312,30 @@ static ssize_t show_##file_name						\
 {									\
 	return sprintf(buf, "%u\n", msm_mpdec_tuners_ins.object);	\
 }
-
 show_one(delay, delay);
 show_one(pause, pause);
 show_one(scroff_single_core, scroff_single_core);
 show_one(min_cpus, min_cpus);
 show_one(max_cpus, max_cpus);
+
+#define store_one(file_name, object)					\
+static ssize_t store_##file_name					\
+(struct kobject *a, struct attribute *b, const char *buf, size_t count)	\
+{									\
+	unsigned int input;						\
+	int ret;							\
+	ret = sscanf(buf, "%u", &input);				\
+	if (ret != 1)							\
+		return -EINVAL;						\
+	msm_mpdec_tuners_ins.object = input;				\
+	return count;							\
+}									\
+define_one_global_rw(file_name);
+store_one(delay, delay);
+store_one(pause, pause);
+store_one(scroff_single_core, scroff_single_core);
+store_one(max_cpus, max_cpus);
+store_one(min_cpus, min_cpus);
 
 #define show_one_twts(file_name, arraypos)				\
 static ssize_t show_##file_name						\
@@ -400,112 +395,10 @@ store_one_nwns(nwns_threshold_1, 1);
 store_one_nwns(nwns_threshold_2, 2);
 store_one_nwns(nwns_threshold_3, 3);
 
-static ssize_t show_idle_freq(struct kobject *kobj, struct attribute *attr,
-				char *buf) {
-	return sprintf(buf, "%lu\n", msm_mpdec_tuners_ins.idle_freq);
-}
-
-static ssize_t store_delay(struct kobject *a, struct attribute *b,
-				const char *buf, size_t count) {
-	unsigned int input;
-	int ret;
-
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_mpdec_tuners_ins.delay = input;
-	return count;
-}
-
-static ssize_t store_pause(struct kobject *a, struct attribute *b,
-				const char *buf, size_t count) {
-	unsigned int input;
-	int ret;
-
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_mpdec_tuners_ins.pause = input;
-	return count;
-}
-
-static ssize_t store_idle_freq(struct kobject *a, struct attribute *b,
-				const char *buf, size_t count) {
-	long unsigned int input;
-	int ret;
-
-	ret = sscanf(buf, "%lu", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	msm_mpdec_tuners_ins.idle_freq = input;
-	return count;
-}
-
-static ssize_t store_scroff_single_core(struct kobject *a, struct attribute *b,
-					const char *buf, size_t count) {
-	unsigned int input;
-	int ret;
-						
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	if ((input < 0) || (input > 1))
-		return -EINVAL;
-
-	msm_mpdec_tuners_ins.scroff_single_core = input;	
-	return count;
-}
-
-static ssize_t store_max_cpus(struct kobject *a, struct attribute *b,
-				const char *buf, size_t count) {
-	unsigned int input;
-	int ret;
-
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1)
-		return -EINVAL;
-
-	if ((input < 1) || (input > nr_cpu_ids) || 
-		(input < msm_mpdec_tuners_ins.min_cpus))
-		return -EINVAL;
-
-	msm_mpdec_tuners_ins.max_cpus = input;
-	return count;
-}
-
-static ssize_t store_min_cpus(struct kobject *a, struct attribute *b,
-				const char *buf, size_t count) {
-	unsigned int input;
-	int ret;
-					
-	ret = sscanf(buf, "%u", &input);
-	if (ret != 1) 
-		return -EINVAL;
-
-	if ((input < 1) || (input > nr_cpu_ids) || 
-		(input > msm_mpdec_tuners_ins.max_cpus))
-		return -EINVAL;
-	
-	msm_mpdec_tuners_ins.min_cpus = input;
-	return count;
-}
-
-define_one_global_rw(delay);
-define_one_global_rw(pause);
-define_one_global_rw(scroff_single_core);
-define_one_global_rw(idle_freq);
-define_one_global_rw(min_cpus);
-define_one_global_rw(max_cpus);
-
 static struct attribute *msm_mpdec_attributes[] = {
 	&delay.attr,
 	&pause.attr,
 	&scroff_single_core.attr,
-	&idle_freq.attr,
 	&min_cpus.attr,
 	&max_cpus.attr,
 	&twts_threshold_0.attr,
@@ -524,16 +417,14 @@ static struct attribute_group msm_mpdec_attr_group = {
 	.name = "conf",
 };
 
-/********* STATS START *********/
-
-static ssize_t show_times_cpus_hotplugged(struct kobject *a, struct attribute *b,
-					char *buf) {
+static ssize_t show_times_cpus_hotplugged(struct kobject *a, 
+					struct attribute *b, char *buf) {
 	ssize_t len = 0;
 	int cpu = 0;
 
 	for_each_possible_cpu(cpu) {
 		len += sprintf(buf + len, "%i %llu\n", cpu, 
-				per_cpu(msm_mpdec_cpudata, cpu).times_cpu_hotplugged);
+			per_cpu(msm_mpdec_cpudata, cpu).times_cpu_hotplugged);
 	}
 	return len;
 }
@@ -548,7 +439,7 @@ static struct attribute_group msm_mpdec_stats_attr_group = {
 	.attrs = msm_mpdec_stats_attributes,
 	.name = "stats",
 };
-/**************************** SYSFS END ****************************/
+/****************************** SYSFS END ******************************/
 
 static int __init msm_mpdec_init(void) {
 	int cpu, rc, err = 0;
@@ -588,14 +479,12 @@ static int __init msm_mpdec_init(void) {
 	if (msm_mpdec_kobject) {
 		rc = sysfs_create_group(msm_mpdec_kobject,
 					&msm_mpdec_attr_group);
-		if (rc) 
+		if (rc)
 			pr_warn(MPDEC_TAG"sysfs: ERROR, could not create sysfs group");
-		
 		rc = sysfs_create_group(msm_mpdec_kobject,
-				&msm_mpdec_stats_attr_group);
-		if (rc) 
+					&msm_mpdec_stats_attr_group);
+		if (rc)
 			pr_warn(MPDEC_TAG"sysfs: ERROR, could not create sysfs stats group");
-		
 	} else
 		pr_warn(MPDEC_TAG"sysfs: ERROR, could not create sysfs kobj");
 

@@ -78,8 +78,11 @@ static struct msm_mpdec_tuners {
 	.min_cpus = 1,
 };
 
-static unsigned int NwNs_Threshold[4] = {35, 0, 0, 5};
-static unsigned int TwTs_Threshold[4] = {90, 0, 0, 450};
+/* limit arrays: 1_up, 2_down, 2_up, 3_down, 3_up, 4_down, ...
+ * if i=nr_cpu_online, up_index=2*i-2 and down_index=2*i-3, 
+ * i>1 for down and i<CONFIG_NR_CPUS for up */ 
+static unsigned int load_limit[2] = {35, 5};
+static unsigned int time_limit[2] = {90, 450};
 
 bool was_paused = false;
 static cputime64_t mpdec_paused_until = 0;
@@ -193,11 +196,11 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 	cpu = 1;
 	rq_avg = get_rq_avg();
 	nr_cpu_online = num_online_cpus();
-	index = (nr_cpu_online - 1) * 2;
+	index = 2*nr_cpu_online - 2;
 
 	if ((nr_cpu_online < msm_mpdec_tuners_ins.max_cpus) && 
-	    (rq_avg >= NwNs_Threshold[index])) {
-		if (total_time >= TwTs_Threshold[index]) {
+	    (rq_avg >= load_limit[index])) {
+		if (total_time >= time_limit[index]) {
 #if CONFIG_NR_CPUS > 2
 			cpu = cpumask_next_zero(0, cpu_online_mask);
 #endif
@@ -209,8 +212,8 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 			}
 		}
 	} else if ((nr_cpu_online > msm_mpdec_tuners_ins.min_cpus) &&
-		   (rq_avg <= NwNs_Threshold[index+1])) {
-		if (total_time >= TwTs_Threshold[index+1]) {
+		   (rq_avg <= load_limit[index-1])) {
+		if (total_time >= time_limit[index-1]) {
 #if CONFIG_NR_CPUS > 2
 			cpu = get_slowest_cpu();
 #endif
@@ -337,18 +340,16 @@ store_one(scroff_single_core, scroff_single_core);
 store_one(max_cpus, max_cpus);
 store_one(min_cpus, min_cpus);
 
-#define show_one_twts(file_name, arraypos)				\
+#define show_one_tlim(file_name, arraypos)				\
 static ssize_t show_##file_name						\
 (struct kobject *kobj, struct attribute *attr, char *buf)		\
 {									\
-	return sprintf(buf, "%u\n", TwTs_Threshold[arraypos]);		\
+	return sprintf(buf, "%u\n", time_limit[arraypos]);		\
 }
-show_one_twts(twts_threshold_0, 0);
-show_one_twts(twts_threshold_1, 1);
-show_one_twts(twts_threshold_2, 2);
-show_one_twts(twts_threshold_3, 3);
+show_one_tlim(time_limit_0, 0);
+show_one_tlim(time_limit_1, 1);
 
-#define store_one_twts(file_name, arraypos)				\
+#define store_one_tlim(file_name, arraypos)				\
 static ssize_t store_##file_name					\
 (struct kobject *a, struct attribute *b, const char *buf, size_t count)	\
 {									\
@@ -357,27 +358,23 @@ static ssize_t store_##file_name					\
 	ret = sscanf(buf, "%u", &input);				\
 	if (ret != 1)							\
 		return -EINVAL;						\
-	TwTs_Threshold[arraypos] = input;				\
+	time_limit[arraypos] = input;					\
 	return count;							\
 }									\
 define_one_global_rw(file_name);
-store_one_twts(twts_threshold_0, 0);
-store_one_twts(twts_threshold_1, 1);
-store_one_twts(twts_threshold_2, 2);
-store_one_twts(twts_threshold_3, 3);
+store_one_tlim(time_limit_0, 0);
+store_one_tlim(time_limit_1, 1);
 
-#define show_one_nwns(file_name, arraypos)				\
+#define show_one_llim(file_name, arraypos)				\
 static ssize_t show_##file_name						\
 (struct kobject *kobj, struct attribute *attr, char *buf)		\
 {									\
-	return sprintf(buf, "%u\n", NwNs_Threshold[arraypos]);		\
+	return sprintf(buf, "%u\n", load_limit[arraypos]);		\
 }
-show_one_nwns(nwns_threshold_0, 0);
-show_one_nwns(nwns_threshold_1, 1);
-show_one_nwns(nwns_threshold_2, 2);
-show_one_nwns(nwns_threshold_3, 3);
+show_one_llim(load_limit_0, 0);
+show_one_llim(load_limit_1, 1);
 
-#define store_one_nwns(file_name, arraypos)				\
+#define store_one_llim(file_name, arraypos)				\
 static ssize_t store_##file_name					\
 (struct kobject *a, struct attribute *b, const char *buf, size_t count)	\
 {									\
@@ -386,14 +383,12 @@ static ssize_t store_##file_name					\
 	ret = sscanf(buf, "%u", &input);				\
 	if (ret != 1)							\
 		return -EINVAL;						\
-	NwNs_Threshold[arraypos] = input;				\
+	load_limit[arraypos] = input;					\
 	return count;							\
 }									\
 define_one_global_rw(file_name);
-store_one_nwns(nwns_threshold_0, 0);
-store_one_nwns(nwns_threshold_1, 1);
-store_one_nwns(nwns_threshold_2, 2);
-store_one_nwns(nwns_threshold_3, 3);
+store_one_llim(load_limit_0, 0);
+store_one_llim(load_limit_1, 1);
 
 static struct attribute *msm_mpdec_attributes[] = {
 	&delay.attr,
@@ -401,14 +396,10 @@ static struct attribute *msm_mpdec_attributes[] = {
 	&scroff_single_core.attr,
 	&min_cpus.attr,
 	&max_cpus.attr,
-	&twts_threshold_0.attr,
-	&twts_threshold_1.attr,
-	&twts_threshold_2.attr,
-	&twts_threshold_3.attr,
-	&nwns_threshold_0.attr,
-	&nwns_threshold_1.attr,
-	&nwns_threshold_2.attr,
-	&nwns_threshold_3.attr,
+	&time_limit_0.attr,
+	&time_limit_1.attr,
+	&load_limit_0.attr,
+	&load_limit_1.attr,
 	NULL
 };
 

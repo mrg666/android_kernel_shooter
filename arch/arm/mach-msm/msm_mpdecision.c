@@ -79,7 +79,7 @@ static struct msm_mpdec_tuners {
 };
 
 static unsigned int NwNs_Threshold[4] = {35, 0, 0, 5};
-static unsigned int TwTs_Threshold[4] = {250, 0, 0, 250};
+static unsigned int TwTs_Threshold[4] = {90, 0, 0, 450};
 
 bool was_paused = false;
 static cputime64_t mpdec_paused_until = 0;

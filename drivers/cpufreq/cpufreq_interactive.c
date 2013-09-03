@@ -1179,6 +1179,7 @@ static int cpufreq_governor_interactive(struct cpufreq_policy *policy,
 			cpufreq_interactive_timer_start(j);
 			up_write(&pcpu->enable_sem);
 		}
+		hispeed_freq = policy->max;
 		break;
 	}
 	return 0;

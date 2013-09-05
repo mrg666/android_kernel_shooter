@@ -283,9 +283,13 @@ static int msm_cpufreq_suspend(void)
 static int msm_cpufreq_resume(void)
 {
 	int cpu;
+	struct cpufreq_policy policy;
 
 	for_each_possible_cpu(cpu) {
 		per_cpu(cpufreq_suspend, cpu).device_suspended = 0;
+		cpufreq_get_policy(&policy, cpu);
+		if (cpu_online(cpu))
+			acpuclk_set_rate(cpu, policy.max, SETRATE_CPUFREQ);
 	}
 
 	return NOTIFY_DONE;

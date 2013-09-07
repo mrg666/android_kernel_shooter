@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Linux/arm 3.0.89 Kernel Configuration
+# Linux/arm 3.0.95 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -592,7 +592,7 @@ CONFIG_ALLOW_CPU_ALIGNMENT=y
 # CONFIG_CC_STACKPROTECTOR is not set
 # CONFIG_DEPRECATED_PARAM_STRUCT is not set
 # CONFIG_ARM_FLUSH_CONSOLE_ON_RESTART is not set
-CONFIG_CP_ACCESS=y
+# CONFIG_CP_ACCESS is not set
 
 #
 # Boot options

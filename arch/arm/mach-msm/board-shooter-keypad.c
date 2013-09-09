@@ -22,14 +22,22 @@
 #include <linux/gpio.h>
 #include <mach/gpio.h>
 
+#ifdef CONFIG_MACH_SHOOTER_U
+#include "board-shooter_u.h"
+#else
 #include "board-shooter.h"
+#endif
 
 #include <linux/mfd/pmic8058.h>
 #include <linux/input/pmic8058-keypad.h>
 
 static char *keycaps = "--qwerty";
 #undef MODULE_PARAM_PREFIX
+#ifdef CONFIG_MACH_SHOOTER_U
+#define MODULE_PARAM_PREFIX "board_shooter_u."
+#else
 #define MODULE_PARAM_PREFIX "board_shooter."
+#endif
 module_param_named(keycaps, keycaps, charp, 0);
 
 static void config_gpio_table(uint32_t *table, int len)
@@ -142,7 +150,11 @@ static struct gpio_event_info *shooter_keypad_info[] = {
 
 static struct gpio_event_platform_data shooter_keypad_data = {
 	.names = {
+#ifdef CONFIG_MACH_SHOOTER_U
+		"shooteru-keypad",
+#else
 		"shooter-keypad",
+#endif
 		NULL,
 	},
 	.info = shooter_keypad_info,

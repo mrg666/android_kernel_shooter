@@ -203,10 +203,17 @@
 #define shooter_SPI_CLK			(36)
 
 /* CAMERA SPI */
+#ifdef CONFIG_MACH_SHOOTER_U
+#define SHOOTER_SP3D_SPI_DO		(41)
+#define SHOOTER_SP3D_SPI_DI		(42)
+#define SHOOTER_SP3D_SPI_CS		(43)
+#define SHOOTER_SP3D_SPI_CLK		(44)
+#else
 #define SHOOTER_SP3D_SPI_DO		(37)
 #define SHOOTER_SP3D_SPI_DI		(38)
 #define SHOOTER_SP3D_SPI_CS		(39)
 #define SHOOTER_SP3D_SPI_CLK		(40)
+#endif
 
 /* CAMERA GPIO */
 #define SHOOTER_CAM_I2C_SDA		(47)

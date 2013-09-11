@@ -22,11 +22,7 @@
 #include <linux/gpio.h>
 #include <mach/gpio.h>
 
-#ifdef CONFIG_MACH_SHOOTER_U
-#include "board-shooter_u.h"
-#else
 #include "board-shooter.h"
-#endif
 
 #include <linux/mfd/pmic8058.h>
 #include <linux/input/pmic8058-keypad.h>

@@ -112,7 +112,7 @@
 #include <mach/cable_detect.h>
 #include <linux/msm_tsens.h>
 
-#include "board-shooter_u.h"
+#include "board-shooter.h"
 #include "devices.h"
 #include "devices-msm8x60.h"
 #include <mach/cpuidle.h>

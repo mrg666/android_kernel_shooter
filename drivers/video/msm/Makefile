@@ -102,7 +102,7 @@ endif
 
 ifeq ($(CONFIG_FB_MSM_MIPI_PANEL_DETECT),y)
 obj-y += mipi_novatek_cmd_qhd_pt.o
-#obj-y += mipi_novatek_cmd_wvga_pt.o
+obj-y += mipi_novatek_cmd_wvga_pt.o
 obj-y += mipi_himax_video_720p_pt.o
 #obj-y += mipi_renesas_cmd_wvga_pt.o
 obj-y += mipi_orise_cmd_qhd_pt.o
@@ -136,7 +136,8 @@ obj-$(CONFIG_FB_MSM_TVOUT) += tvout_msm.o
 
 obj-$(CONFIG_FB_MSM_EXTMDDI_SVGA) += mddi_ext_lcd.o
 
-#obj-$(CONFIG_VIDC_1080P) += vidc/
+obj-$(CONFIG_MSM_VIDC_720P) += vidc/
+obj-$(CONFIG_MSM_VIDC_1080P) += vidc/
 
 obj-$(CONFIG_FB_MSM_HDMI_MHL_SII9234)  += sii9234/
 

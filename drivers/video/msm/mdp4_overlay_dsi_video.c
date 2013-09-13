@@ -472,7 +472,7 @@ void mdp4_dsi_video_overlay(struct msm_fb_data_type *mfd)
 	bpp = fbi->var.bits_per_pixel / 8;
 	buf = (uint8 *) fbi->fix.smem_start;
 	buf += calc_fb_offset(mfd, fbi, bpp);
-	
+
 	mutex_lock(&mfd->dma->ov_mutex);
 
 	pipe = dsi_pipe;

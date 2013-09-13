@@ -1183,22 +1183,18 @@ static int msm_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
 	u32 len = PAGE_ALIGN((start & ~PAGE_MASK) + info->fix.smem_len);
 	unsigned long off = vma->vm_pgoff << PAGE_SHIFT;
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
-	if (off >= len) {
-		/* memory mapped io */
-		off -= len;
-		if (info->var.accel_flags) {
-			mutex_unlock(&info->lock);
-			return -EINVAL;
-		}
-		start = info->fix.mmio_start;
-		len = PAGE_ALIGN((start & ~PAGE_MASK) + info->fix.mmio_len);
-	}
+  if (!start)
+    return -EINVAL;
 
+  if ((vma->vm_end <= vma->vm_start) ||
+      (off >= len) ||
+      ((vma->vm_end - vma->vm_start) > (len - off)))
+    return -EINVAL;
 	/* Set VM flags. */
 	start &= PAGE_MASK;
-	if ((vma->vm_end - vma->vm_start + off) > len)
-		return -EINVAL;
 	off += start;
+  if (off < start)
+    return -EINVAL;
 	vma->vm_pgoff = off >> PAGE_SHIFT;
 	/* This is an IO map - tell maydump to skip this VMA */
 	vma->vm_flags |= VM_IO | VM_RESERVED;
@@ -1272,7 +1268,7 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 	int *id;
 	int fbram_offset;
 	int remainder, remainder_mode2;
-	
+
 	/*
 	 * fb info initialization
 	 */
@@ -1414,7 +1410,7 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 	 * and y offset */
 
 	remainder = (fix->line_length * panel_info->yres) & (PAGE_SIZE - 1);
-					/* PAGE_SIZE is a power of 2 */	
+					/* PAGE_SIZE is a power of 2 */
 	if (!remainder)
 		remainder = PAGE_SIZE;
 	remainder_mode2 = (fix->line_length *
@@ -1424,18 +1420,29 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 
 	/* calculate smem_len based on max size of two supplied modes */
 	fix->smem_len = MAX((msm_fb_line_length(mfd->index, panel_info->xres,
-											bpp) *
-						panel_info->yres + PAGE_SIZE -
-							remainder) * mfd->fb_page,
-						(msm_fb_line_length(mfd->index,
-											panel_info->mode2_xres,
-											bpp) *
-						panel_info->mode2_yres + PAGE_SIZE -
-							remainder_mode2) * mfd->fb_page);
+					      bpp) *
+			    panel_info->yres + PAGE_SIZE -
+				remainder) * mfd->fb_page,
+			    (msm_fb_line_length(mfd->index,
+					       panel_info->mode2_xres,
+					       bpp) *
+			    panel_info->mode2_yres + PAGE_SIZE -
+				remainder_mode2) * mfd->fb_page);
+
+
+	/* calculate smem_len based on max size of two supplied modes */
+	fix->smem_len = roundup(MAX(msm_fb_line_length(mfd->index,
+					       panel_info->xres,
+					       bpp) *
+			    panel_info->yres * mfd->fb_page,
+			    msm_fb_line_length(mfd->index,
+					       panel_info->mode2_xres,
+					       (panel_info->mode2_bpp+7)/8) *
+			    panel_info->mode2_yres * mfd->fb_page), PAGE_SIZE);
 
 #if (defined(CONFIG_USB_FUNCTION_PROJECTOR) || defined(CONFIG_USB_ANDROID_PROJECTOR))
 	if (mfd->index == 0) {
-		msm_fb_data.xres = ALIGN(panel_info->xres, 32);
+		msm_fb_data.xres = panel_info->xres;
 		msm_fb_data.yres = panel_info->yres;
 	}
 #endif
@@ -1443,13 +1450,14 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 
 	mfd->var_xres = panel_info->xres;
 	mfd->var_yres = panel_info->yres;
+	mfd->var_frame_rate = panel_info->frame_rate;
 
 	var->pixclock = mfd->panel_info.clk_rate;
 	mfd->var_pixclock = var->pixclock;
 
 	var->xres = panel_info->xres;
 	var->yres = panel_info->yres;
-	var->xres_virtual = ALIGN(panel_info->xres, 32);
+	var->xres_virtual = panel_info->xres;
 	var->yres_virtual = panel_info->yres * mfd->fb_page +
 		((PAGE_SIZE - remainder)/fix->line_length) * mfd->fb_page;
 	var->bits_per_pixel = bpp * 8;	/* FrameBuffer color depth */
@@ -2017,6 +2025,27 @@ static int msm_fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	return 0;
 }
 
+int msm_fb_check_frame_rate(struct msm_fb_data_type *mfd
+						, struct fb_info *info)
+{
+	int panel_height, panel_width, var_frame_rate, fps_mod;
+	struct fb_var_screeninfo *var = &info->var;
+	fps_mod = 0;
+	if ((mfd->panel_info.type == DTV_PANEL) ||
+		(mfd->panel_info.type == HDMI_PANEL)) {
+		panel_height = var->yres + var->upper_margin +
+			var->vsync_len + var->lower_margin;
+		panel_width = var->xres + var->right_margin +
+			var->hsync_len + var->left_margin;
+		var_frame_rate = ((var->pixclock)/(panel_height * panel_width));
+		if (mfd->var_frame_rate != var_frame_rate) {
+			fps_mod = 1;
+			mfd->var_frame_rate = var_frame_rate;
+		}
+	}
+	return fps_mod;
+}
+
 static int msm_fb_set_par(struct fb_info *info)
 {
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
@@ -2058,7 +2087,8 @@ static int msm_fb_set_par(struct fb_info *info)
 		(mfd->hw_refresh && ((mfd->fb_imgType != old_imgType) ||
 				(mfd->var_pixclock != var->pixclock) ||
 				(mfd->var_xres != var->xres) ||
-				(mfd->var_yres != var->yres)))) {
+				(mfd->var_yres != var->yres) ||
+				(msm_fb_check_frame_rate(mfd, info))))) {
 		mfd->var_xres = var->xres;
 		mfd->var_yres = var->yres;
 		mfd->var_pixclock = var->pixclock;
@@ -2323,8 +2353,6 @@ int mdp_blit(struct fb_info *info, struct mdp_blit_req *req)
 
 		/* blit first region */
 		if (((splitreq.flags & 0x07) == 0x07) ||
-			((splitreq.flags & 0x07) == 0x05) ||
-			((splitreq.flags & 0x07) == 0x02) ||
 			((splitreq.flags & 0x07) == 0x0)) {
 
 			if (splitreq.flags & MDP_ROT_90) {
@@ -2407,8 +2435,6 @@ int mdp_blit(struct fb_info *info, struct mdp_blit_req *req)
 			return ret;
 		/* blit second region */
 		if (((splitreq.flags & 0x07) == 0x07) ||
-			((splitreq.flags & 0x07) == 0x05) ||
-			((splitreq.flags & 0x07) == 0x02) ||
 			((splitreq.flags & 0x07) == 0x0)) {
 			splitreq.src_rect.h = s_h_1;
 			splitreq.src_rect.y = s_y_1;
@@ -2474,6 +2500,8 @@ int mdp_blit(struct fb_info *info, struct mdp_blit_req *req)
 
 		/* blit first region */
 		if (((splitreq.flags & 0x07) == 0x07) ||
+			((splitreq.flags & 0x07) == 0x05) ||
+			((splitreq.flags & 0x07) == 0x02) ||
 			((splitreq.flags & 0x07) == 0x0)) {
 
 			if (splitreq.flags & MDP_ROT_90) {
@@ -2554,6 +2582,8 @@ int mdp_blit(struct fb_info *info, struct mdp_blit_req *req)
 
 		/* blit second region */
 		if (((splitreq.flags & 0x07) == 0x07) ||
+			((splitreq.flags & 0x07) == 0x05) ||
+			((splitreq.flags & 0x07) == 0x02) ||
 			((splitreq.flags & 0x07) == 0x0)) {
 			splitreq.src_rect.h = s_h_1;
 			splitreq.src_rect.y = s_y_1;
@@ -3118,8 +3148,7 @@ static int msmfb_overlay_blt(struct fb_info *info, unsigned long *argp)
 
 	ret = copy_from_user(&req, argp, sizeof(req));
 	if (ret) {
-		printk(KERN_ERR "%s:msmfb_overlay_blt ioctl failed\n",
-			__func__);
+		pr_err("%s: failed\n", __func__);
 		return ret;
 	}
 
@@ -3133,6 +3162,12 @@ static int msmfb_overlay_blt_off(struct fb_info *info, unsigned long *argp)
 {
 	int	ret;
 	struct msmfb_overlay_blt req;
+
+	ret = copy_from_user(&req, argp, sizeof(req));
+	if (ret) {
+		pr_err("%s: failed\n", __func__);
+		return ret;
+	}
 
 	ret = mdp4_overlay_blt_offset(info, &req);
 
@@ -3174,6 +3209,27 @@ static int msmfb_overlay_3d(struct fb_info *info, unsigned long *argp)
 	ret = mdp4_overlay_3d(info, &req);
 
 	return ret;
+}
+
+static int msmfb_mixer_info(struct fb_info *info, unsigned long *argp)
+{
+	int     ret, cnt;
+	struct msmfb_mixer_info_req req;
+
+	ret = copy_from_user(&req, argp, sizeof(req));
+	if (ret) {
+		pr_err("%s: failed\n", __func__);
+		return ret;
+	}
+
+	cnt = mdp4_mixer_info(req.mixer_num, req.info);
+	req.cnt = cnt;
+	ret = copy_to_user(argp, &req, sizeof(req));
+	if (ret)
+		pr_err("%s:msmfb_overlay_blt_off ioctl failed\n",
+		__func__);
+
+	return cnt;
 }
 
 #endif
@@ -3310,6 +3366,11 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 	case MSMFB_OVERLAY_3D:
 		down(&msm_fb_ioctl_ppp_sem);
 		ret = msmfb_overlay_3d(info, argp);
+		up(&msm_fb_ioctl_ppp_sem);
+		break;
+	case MSMFB_MIXER_INFO:
+		down(&msm_fb_ioctl_ppp_sem);
+		ret = msmfb_mixer_info(info, argp);
 		up(&msm_fb_ioctl_ppp_sem);
 		break;
 #endif

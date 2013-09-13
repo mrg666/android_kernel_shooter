@@ -293,11 +293,11 @@ int mdp_start_histogram(struct fb_info *info)
 	int ret = 0;
 	mutex_lock(&mdp_hist_mutex);
 	if (mdp_is_hist_start == TRUE) {
-		PR_DISP_INFO("%s histogram already started\n", __func__);
+		pr_info("%s histogram already started\n", __func__);
 		ret = -EPERM;
 		goto mdp_hist_start_err;
 	}
-	PR_DISP_INFO("%s", __func__);
+	pr_info("%s", __func__);
 	ret = _mdp_histogram_ctrl(TRUE);
 
 	spin_lock_irqsave(&mdp_spin_lock, flag);
@@ -315,11 +315,11 @@ int mdp_stop_histogram(struct fb_info *info)
 	int ret = 0;
 	mutex_lock(&mdp_hist_mutex);
 	if (!mdp_is_hist_start) {
-		PR_DISP_INFO("%s histogram already stopped\n", __func__);
+		pr_info("%s histogram already stopped\n", __func__);
 		ret = -EPERM;
 		goto mdp_hist_stop_err;
 	}
-	PR_DISP_INFO("%s", __func__);
+	pr_info("%s", __func__);
 	spin_lock_irqsave(&mdp_spin_lock, flag);
 	mdp_is_hist_start = FALSE;
 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
@@ -380,7 +380,7 @@ static int mdp_copy_hist_data(struct mdp_histogram *hist, struct msm_fb_data_typ
 	return 0;
 
 hist_err:
-	PR_DISP_ERR("%s: invalid hist buffer\n", __func__);
+	pr_err("%s: invalid hist buffer\n", __func__);
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
 	mutex_unlock(&mfd->dma->ov_mutex);
 	return ret;
@@ -392,7 +392,7 @@ static int mdp_do_histogram(struct fb_info *info, struct mdp_histogram *hist, st
 
 	if (!hist->frame_cnt || (hist->bin_cnt == 0) ||
 				 (hist->bin_cnt > MDP_HIST_MAX_BIN)) {
-		PR_DISP_ERR("%s fail frame_cnt:%d bin_cnt:%d \n",
+		pr_err("%s fail frame_cnt:%d bin_cnt:%d \n",
 			__func__, hist->frame_cnt, hist->bin_cnt);
 		return -EINVAL;
 	}
@@ -400,13 +400,13 @@ static int mdp_do_histogram(struct fb_info *info, struct mdp_histogram *hist, st
 	mutex_lock(&mdp_hist_mutex);
 
 	if (!mdp_is_hist_data) {
-			PR_DISP_INFO("%s histogram data already stopped\n", __func__);
+			pr_info("%s histogram data already stopped\n", __func__);
 			ret = -EINVAL;
 			goto error;
 	}
 
 	if (!mdp_is_hist_start) {
-		PR_DISP_INFO("%s histogram already stopped\n", __func__);
+		pr_info("%s histogram already stopped\n", __func__);
 		ret = -EINVAL;
 		goto error;
 	}
@@ -424,7 +424,7 @@ static int mdp_do_histogram(struct fb_info *info, struct mdp_histogram *hist, st
 		ret = mdp_copy_hist_data(hist, mfd);
 
 	if (ret < 0)
-		PR_DISP_ERR("%s mdp_copy_hist_data\n", __func__);
+		pr_err("%s mdp_copy_hist_data\n", __func__);
 error:
 	mutex_unlock(&mdp_hist_mutex);
 	return ret;

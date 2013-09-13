@@ -146,7 +146,7 @@ struct vcd_dev_ctxt {
 	u32 reqd_perf_lvl;
 	u32 curr_perf_lvl;
 	u32 set_perf_lvl_pending;
-
+	bool turbo_mode_set;
 };
 
 struct vcd_clnt_status {
@@ -185,11 +185,13 @@ struct vcd_clnt_ctxt {
 	u32 live;
 	u32 decoding;
 	u32 bframe;
+	u32 num_slices;
 
 	struct vcd_property_frame_rate frm_rate;
 	u32 frm_p_units;
 	u32 reqd_perf_lvl;
 	u32 time_resoln;
+	u32 time_frame_delta;
 
 	struct vcd_buffer_pool in_buf_pool;
 	struct vcd_buffer_pool out_buf_pool;
@@ -209,6 +211,9 @@ struct vcd_clnt_ctxt {
 	u32 vcd_enable_ion;
 	struct vcd_clnt_ctxt *next;
 	u32 meta_mode;
+	int secure;
+	int perf_set_by_client;
+	bool is_turbo_enabled;
 };
 
 #define VCD_BUFFERPOOL_INUSE_DECREMENT(val) \

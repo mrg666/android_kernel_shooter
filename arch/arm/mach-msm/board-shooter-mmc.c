@@ -44,6 +44,9 @@
 
 #include "mpm.h"
 #include "rpm_resources.h"
+#ifdef CONFIG_MACH_SHOOTER_U
+#include <mach/htc_sleep_clk.h>
+#endif
 
 int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2);
 
@@ -223,6 +226,9 @@ int shooter_wifi_power(int on)
 		config_gpio_table(wifi_off_gpio_table,
 				  ARRAY_SIZE(wifi_off_gpio_table));
 	}
+#ifdef CONFIG_MACH_SHOOTER_U 
+	htc_wifi_bt_sleep_clk_ctl(on, ID_WIFI);
+#endif
 	mdelay(1); /* Delay 1 ms, Recommand by Hardware */
 	gpio_set_value(shooter_GPIO_WIFI_SHUTDOWN_N, on); /* WIFI_SHUTDOWN */
 

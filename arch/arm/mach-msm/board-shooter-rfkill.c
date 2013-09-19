@@ -25,9 +25,10 @@
 
 #include <linux/mfd/pmic8058.h>
 #include "board-shooter.h"
-/*
+
+#ifdef CONFIG_MACH_SHOOTER_U
 #include <mach/htc_sleep_clk.h>
-*/
+#endif
 
 static struct rfkill *bt_rfk;
 static const char bt_name[] = "bcm4329";
@@ -226,19 +227,16 @@ static int shooter_rfkill_probe(struct platform_device *pdev)
 	int rc = 0;
 	bool default_state = true; /* off */
 
-#if 0 /* Is this necessary? */
+#ifdef CONFIG_MACH_SHOOTER_U
 	rc = gpio_request(shooter_GPIO_BT_RESET_N, "bt_reset");
 	if (rc)
 		goto err_gpio_reset;
 	rc = gpio_request(shooter_GPIO_BT_SHUTDOWN_N, "bt_shutdown");
 	if (rc)
 		goto err_gpio_shutdown;
-#endif
 
-	/* always turn on clock */
-/*
 	htc_wifi_bt_sleep_clk_ctl(CLK_ON, ID_BT);
-*/
+#endif
 
 	mdelay(2);
 
@@ -263,7 +261,7 @@ static int shooter_rfkill_probe(struct platform_device *pdev)
 err_rfkill_reg:
 	rfkill_destroy(bt_rfk);
 err_rfkill_alloc:
-#if 0
+#ifdef CONFIG_MACH_SHOOTER_U
 	gpio_free(shooter_GPIO_BT_SHUTDOWN_N);
 err_gpio_shutdown:
 	gpio_free(shooter_GPIO_BT_RESET_N);
@@ -277,7 +275,7 @@ static int shooter_rfkill_remove(struct platform_device *dev)
 	rfkill_unregister(bt_rfk);
 	/*rfkill_free(bt_rfk);*/
 	rfkill_destroy(bt_rfk);
-#if 0
+#ifdef CONFIG_MACH_SHOOTER_U
 	gpio_free(shooter_GPIO_BT_SHUTDOWN_N);
 	gpio_free(shooter_GPIO_BT_RESET_N);
 #endif

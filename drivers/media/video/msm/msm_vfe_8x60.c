@@ -31,7 +31,7 @@
 
 static atomic_t irq_cnt;
 
-#define BUS_RATE_DEBUG 1
+// #define BUS_RATE_DEBUG 1
 
 #define CHECKED_COPY_FROM_USER(in) {					\
 	if (copy_from_user((in), (void __user *)cmd->value,		\

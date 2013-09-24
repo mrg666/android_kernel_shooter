@@ -138,10 +138,6 @@
 #include <mach/perflock.h>
 #endif
 
-#ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_2_PHASE
-int set_two_phase_freq(int cpufreq);
-#endif
-
 int __init pyd_init_panel(struct resource *res, size_t size);
 
 enum {
@@ -6466,10 +6462,6 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 
 #ifdef CONFIG_PERFLOCK
 	perflock_init(&shooter_perflock_data);
-#endif
-
-#ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_2_PHASE
-	set_two_phase_freq(1134000);
 #endif
 
 	msm8x60_init_tlmm();

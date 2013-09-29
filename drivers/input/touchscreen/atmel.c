@@ -1024,6 +1024,11 @@ static void msg_process_multitouch(struct atmel_ts_data *ts, uint8_t *data, uint
 							T6_CFG_CALIBRATE, 0x55);
 				}
 			}
+			if (!ts->finger_count) {
+				// Force re-calibrate whenever we run out of fingers
+				atmel_unlock_store(NULL, NULL, "2\n" , 1);
+			}
+
 		}
 	} else if ((data[T9_MSG_STATUS] & (T9_MSG_STATUS_DETECT|T9_MSG_STATUS_PRESS)) &&
 		!(ts->finger_pressed & BIT(idx))) {

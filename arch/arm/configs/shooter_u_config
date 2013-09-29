@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Linux/arm 3.0.95 Kernel Configuration
+# Linux/arm 3.0.97 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -280,7 +280,7 @@ CONFIG_MSM_SOC_REV_NONE=y
 # CONFIG_MSM_SOC_REV_A is not set
 CONFIG_ARCH_MSM_SCORPION=y
 CONFIG_MSM_SMP=y
-CONFIG_MSM_MPDEC=y
+CONFIG_MSM_ASMP=y
 CONFIG_ARCH_MSM_SCORPIONMP=y
 CONFIG_MSM_RPM=y
 CONFIG_MSM_MPM=y

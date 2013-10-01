@@ -5,9 +5,9 @@
  * Copyright (C) 2003 Al Borchers (alborchers@steinerpoint.com)
  * Copyright (C) 2008 David Brownell
  * Copyright (C) 2008 by Nokia Corporation
- * Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2011, The Linux Foundation. All rights reserved.
  *
- * This program from the Code Aurora Forum is free software; you can
+ * This program from The Linux Foundation is free software; you can
  * redistribute it and/or modify it under the GNU General Public License
  * version 2 and only version 2 as published by the Free Software Foundation.
  * The original work available from [kernel.org] is subject to the notice below.
@@ -231,8 +231,8 @@ start_rx_end:
 int gsdio_write(struct gsdio_port *port, struct usb_request *req)
 {
 	unsigned	avail;
-	char		*packet;
-	unsigned	size;
+	char		*packet = req->buf;
+	unsigned	size = req->actual;
 	unsigned	n;
 	int		ret = 0;
 
@@ -248,8 +248,6 @@ int gsdio_write(struct gsdio_port *port, struct usb_request *req)
 		return -ENODEV;
 	}
 
-	size = req->actual;
-	packet = req->buf;
 	pr_debug("%s: port:%p port#%d req:%p actual:%d n_read:%d\n",
 			__func__, port, port->port_num, req,
 			req->actual, port->n_read);
@@ -536,20 +534,6 @@ void gsdio_tx_pull(struct work_struct *w)
 			goto tx_pull_end;
 		}
 
-		/* Do not send data if DTR is not set */
-		if (!(port->cbits_to_modem & TIOCM_DTR)) {
-			pr_info("%s: DTR low. flush %d bytes.", __func__, avail);
-			/* check if usb is still active */
-			if (!port->port_usb) {
-				gsdio_free_req(in, req);
-			} else {
-				list_add(&req->list, pool);
-				port->wp_len++;
-			}
-			goto tx_pull_end;
-		}
-
-
 		req->length = avail;
 
 		spin_unlock_irq(&port->port_lock);
@@ -655,10 +639,11 @@ void gsdio_ctrl_wq(struct work_struct *w)
 			port->cbits_to_modem, ~(port->cbits_to_modem));
 }
 
-void gsdio_ctrl_notify_modem(struct gserial *gser, u8 portno, int ctrl_bits)
+void gsdio_ctrl_notify_modem(void *gptr, u8 portno, int ctrl_bits)
 {
 	struct gsdio_port *port;
 	int temp;
+	struct gserial *gser = gptr;
 
 	if (portno >= n_sdio_ports) {
 		pr_err("%s: invalid portno#%d\n", __func__, portno);
@@ -1146,8 +1131,8 @@ int gsdio_setup(struct usb_gadget *g, unsigned count)
 
 	for (i = 0; i < count; i++) {
 		mutex_init(&sdio_ports[i].lock);
-		n_sdio_ports++;
 		ret = gsdio_port_alloc(i, &coding, sport_info + i);
+		n_sdio_ports++;
 		if (ret) {
 			n_sdio_ports--;
 			pr_err("%s: sdio logical port allocation failed\n",

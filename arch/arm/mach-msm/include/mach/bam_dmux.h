@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -58,7 +58,15 @@ int msm_bam_dmux_close(uint32_t id);
 
 int msm_bam_dmux_write(uint32_t id, struct sk_buff *skb);
 
-void msm_bam_dmux_kickoff_ul_wakeup(void);
+int msm_bam_dmux_kickoff_ul_wakeup(void);
+
+int msm_bam_dmux_ul_power_vote(void);
+
+int msm_bam_dmux_ul_power_unvote(void);
+
+int msm_bam_dmux_is_ch_full(uint32_t id);
+
+int msm_bam_dmux_is_ch_low(uint32_t id);
 #else
 int msm_bam_dmux_open(uint32_t id, void *priv,
 		       void (*notify)(void *priv, int event_type,
@@ -77,8 +85,29 @@ int msm_bam_dmux_write(uint32_t id, struct sk_buff *skb)
 	return -ENODEV;
 }
 
-void msm_bam_dmux_kickoff_ul_wakeup(void)
+static inline int msm_bam_dmux_kickoff_ul_wakeup(void)
 {
+	return -ENODEV;
+}
+
+static inline int msm_bam_dmux_ul_power_vote(void)
+{
+	return -ENODEV;
+}
+
+static inline int msm_bam_dmux_ul_power_unvote(void)
+{
+	return -ENODEV;
+}
+
+int msm_bam_dmux_is_ch_full(uint32_t id)
+{
+	return -ENODEV;
+}
+
+int msm_bam_dmux_is_ch_low(uint32_t id)
+{
+	return -ENODEV;
 }
 #endif
 #endif /* _BAM_DMUX_H */

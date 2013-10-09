@@ -288,7 +288,7 @@ static void (*sdc5_status_notify_cb)(int card_present, void *dev_id);
 static void *sdc5_status_notify_cb_devid;
 #endif
 
-static unsigned int engineerid, mem_size_mb;
+static unsigned int engineerid;
 
 #define _GET_REGULATOR(var, name) do {				\
 	var = regulator_get(NULL, name);			\
@@ -2094,18 +2094,6 @@ static struct platform_device android_pmem_adsp_device = {
 	.dev	= { .platform_data = &android_pmem_adsp_pdata },
 };
 
-static struct android_pmem_platform_data android_pmem_adsp2_pdata = {
-	.name		= "pmem_adsp2",
-	.allocator_type	= PMEM_ALLOCATORTYPE_BITMAP,
-	.cached		= 0,
-};
-
-static struct platform_device android_pmem_adsp2_device = {
-	.name	= "android_pmem",
-	.id	= 3,
-	.dev	= { .platform_data = &android_pmem_adsp2_pdata },
-};
-
 static struct android_pmem_platform_data android_pmem_audio_pdata = {
 	.name		= "pmem_audio",
 	.allocator_type	= PMEM_ALLOCATORTYPE_BITMAP,
@@ -2246,16 +2234,12 @@ static void __init msm8x60_allocate_memory_regions(void)
 
 	size = MSM_FB_SIZE;
 	msm_fb_resources[0].start = MSM_FB_BASE;
-	if (mem_size_mb == 1024)
-			msm_fb_resources[0].start += 0x10000000;
 	msm_fb_resources[0].end = msm_fb_resources[0].start + size - 1;
 	pr_info("allocating %lu bytes at 0x%p (0x%lx physical) for fb\n",
 		size, __va(MSM_FB_BASE), (unsigned long) MSM_FB_BASE);
 
 	size = MSM_OVERLAY_BLT_SIZE;
 	msm_fb_resources[1].start = MSM_OVERLAY_BLT_BASE;
-	if (mem_size_mb == 1024)
-			msm_fb_resources[1].start += 0x10000000;
 	msm_fb_resources[1].end = msm_fb_resources[1].start + size - 1;
 	pr_info("allocating %lu bytes at 0x%p (0x%lx physical) for overlay\n",
 		size, __va(MSM_OVERLAY_BLT_BASE), (unsigned long) msm_fb_resources[1].start);
@@ -3616,7 +3600,6 @@ static struct platform_device *shooter_devices[] __initdata = {
 #ifdef CONFIG_ANDROID_PMEM
 	&android_pmem_device,
 	&android_pmem_adsp_device,
-	&android_pmem_adsp2_device,
 	&android_pmem_audio_device,
 	&android_pmem_smipool_device,
 #endif
@@ -3723,15 +3706,9 @@ static void __init size_pmem_devices(void)
 {
 #ifdef CONFIG_ANDROID_PMEM
 	size_pmem_device(&android_pmem_adsp_pdata, MSM_PMEM_ADSP_BASE, pmem_adsp_size);
-	size_pmem_device(&android_pmem_adsp2_pdata, MSM_PMEM_ADSP2_BASE, MSM_PMEM_ADSP2_SIZE);
 	size_pmem_device(&android_pmem_smipool_pdata, MSM_PMEM_SMIPOOL_BASE, MSM_PMEM_SMIPOOL_SIZE);
-	if (mem_size_mb == 1024) {
-		size_pmem_device(&android_pmem_audio_pdata, MSM_PMEM_AUDIO_BASE+0x10000000, MSM_PMEM_AUDIO_SIZE);
-		size_pmem_device(&android_pmem_pdata, MSM_PMEM_SF_BASE+0x10000000, MSM_PMEM_SF_SIZE);
-	} else {
-		size_pmem_device(&android_pmem_audio_pdata, MSM_PMEM_AUDIO_BASE, MSM_PMEM_AUDIO_SIZE);
-		size_pmem_device(&android_pmem_pdata, MSM_PMEM_SF_BASE, MSM_PMEM_SF_SIZE);
-	}
+	size_pmem_device(&android_pmem_audio_pdata, MSM_PMEM_AUDIO_BASE, MSM_PMEM_AUDIO_SIZE);
+	size_pmem_device(&android_pmem_pdata, MSM_PMEM_SF_BASE, MSM_PMEM_SF_SIZE);
 #endif
 }
 
@@ -3764,7 +3741,7 @@ static void __init msm8x60_calculate_reserve_sizes(void)
 
 static int msm8x60_paddr_to_memtype(phys_addr_t paddr)
 {
-	if (paddr >= 0x40000000 && paddr < 0x60000000)
+	if (paddr >= 0x40000000 && paddr < 0x80000000)
 		return MEMTYPE_EBI1;
 	if (paddr >= 0x38000000 && paddr < 0x40000000)
 		return MEMTYPE_SMI;
@@ -6587,15 +6564,10 @@ static void __init shooter_charm_init_early(void)
 static void __init shooter_fixup(struct machine_desc *desc, struct tag *tags,
 		char **cmdline, struct meminfo *mi)
 {
-	mem_size_mb = parse_tag_memsize((const struct tag *)tags);
-	printk(KERN_DEBUG "%s: mem_size_mb=%u\n", __func__, mem_size_mb);
-
 	engineerid = parse_tag_engineerid(tags);
 	mi->nr_banks = 1;
 	mi->bank[0].start = PHY_BASE_ADDR1;
 	mi->bank[0].size = SIZE_ADDR1;
-	if (mem_size_mb == 1024)
-		mi->bank[0].size += 0x10000000;
 }
 
 MACHINE_START(SHOOTER_U, "shooter_u")

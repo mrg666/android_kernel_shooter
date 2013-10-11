@@ -41,8 +41,7 @@
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 /* prim = 960 x 540 x 4(bpp) x 3(pages) */
-#define MSM_FB_PRIM_BUF_SIZE \
-				(roundup((960 * ALIGN(540, 32) * 4), 4096) * 3)
+#define MSM_FB_PRIM_BUF_SIZE 0x5FA000
 #else
 /* prim = 960 x 540 x 4(bpp) x 2(pages) */
 #define MSM_FB_PRIM_BUF_SIZE \
@@ -60,7 +59,7 @@
 /* prim = 1024 x 600 x 4(bpp) x 2(pages)
  * hdmi = 1920 x 1080 x 2(bpp) x 1(page)
  * Note: must be multiple of 4096 */
-#define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + 0x3F4800 + MSM_FB_DSUB_PMEM_ADDER, 4096)
+#define MSM_FB_SIZE 0x9EF000
 #elif defined(CONFIG_FB_MSM_TVOUT)
 /* prim = 1024 x 600 x 4(bpp) x 2(pages)
  * tvout = 720 x 576 x 2(bpp) x 2(pages)
@@ -69,27 +68,21 @@
 #else /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
 #define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + MSM_FB_DSUB_PMEM_ADDER, 4096)
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
-#define MSM_PMEM_SF_SIZE 0x4000000 /* 64 Mbytes */
-#define MSM_OVERLAY_BLT_SIZE   roundup(960 * ALIGN(540, 32) * 3 * 2, 4096)
 
-#define MSM_PMEM_ADSP_SIZE	0x239C000
-#define MSM_PMEM_ADSP2_SIZE	0x664000 /* ((1408 * 792 * 1.5) Align 2K) * 2 * 2 */
+#define MSM_OVERLAY_BLT_SIZE	0x18000
+#define MSM_PMEM_ADSP_SIZE	0x1500000
 #define MSM_PMEM_AUDIO_SIZE	0x239000
+#define MSM_PMEM_SF_SIZE	0x20A0000 /* 32.625 Mbytes */
 
-#define MSM_PMEM_SF_BASE	(0x70000000 - MSM_PMEM_SF_SIZE)
-#define MSM_OVERLAY_BLT_BASE	(MSM_PMEM_SF_BASE - MSM_OVERLAY_BLT_SIZE)
-#define MSM_PMEM_AUDIO_BASE	(MSM_OVERLAY_BLT_BASE - MSM_PMEM_AUDIO_SIZE)
+#define MSM_OVERLAY_BLT_BASE	(0x45C00000)
+#define MSM_PMEM_ADSP_BASE	(USER_SMI_BASE + USER_SMI_SIZE)
+#define MSM_PMEM_AUDIO_BASE	(0x46400000)
+#define MSM_PMEM_SF_BASE	(0x40400000)
 
-#define MSM_PMEM_ADSP_BASE	(0x40400000)
-#define MSM_PMEM_ADSP2_BASE	(MSM_PMEM_ADSP_BASE + MSM_PMEM_ADSP_SIZE)
-
-#define MSM_FB_BASE	(0x6B000000)  /*MSM_PMEM_AUDIO_BASE is 0x6BACA000*/
-                                              /*to avoid alignment,  use 0x6BA00000 - 0xA00000*/
-
-#define MSM_PMEM_KERNEL_EBI1_BASE	(MSM_PMEM_AUDIO_BASE + MSM_PMEM_AUDIO_SIZE)
+#define MSM_FB_BASE		(MSM_PMEM_SF_BASE + MSM_PMEM_SF_SIZE)
 
 #define MSM_SMI_BASE		0x38000000
-#define MSM_SMI_SIZE		0x4000000
+#define MSM_SMI_SIZE		(0x4000000 - MSM_PMEM_ADSP_SIZE)
 
 /* Kernel SMI PMEM Region for video core, used for Firmware */
 /* and encoder,decoder scratch buffers */
@@ -107,7 +100,7 @@
 #define MSM_PMEM_SMIPOOL_SIZE	USER_SMI_SIZE
 
 #define PHY_BASE_ADDR1		0x48000000
-#define SIZE_ADDR1		0x23000000
+#define SIZE_ADDR1		0x37F00000
 
 /* GPIO definition */
 

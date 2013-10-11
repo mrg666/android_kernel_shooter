@@ -1,6 +1,14 @@
-/* linux/arch/arm/mach-msm/board-spade.h
+/* linux/arch/arm/mach-msm/board-shooter.h
  *
  * Copyright (C) 2010-2011 HTC Corporation.
+ *
+ * 2013 - Memory remapped by Sultanxda (android1234567)
+ *
+ * Major memory map revision: board-shooter.c, board-shooter_u.c, board-shooter.h
+ * October 8th, 2013: https://github.com/sultanxda/android_kernel_shooter
+ *
+ * Minor memory map revision: board-shooter.h
+ * October 11th, 2013: https://github.com/sultanxda/android_kernel_shooter
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -56,31 +64,20 @@
 #define MSM_FB_WRITEBACK_SIZE 0
 #endif
 
-#ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
-/* prim = 1024 x 600 x 4(bpp) x 2(pages)
- * hdmi = 1920 x 1080 x 2(bpp) x 1(page)
- * Note: must be multiple of 4096 */
-#define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + 0x3F4800 + MSM_FB_DSUB_PMEM_ADDER, 4096)
-#elif defined(CONFIG_FB_MSM_TVOUT)
-/* prim = 1024 x 600 x 4(bpp) x 2(pages)
- * tvout = 720 x 576 x 2(bpp) x 2(pages)
- * Note: must be multiple of 4096 */
-#define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + 0x195000 + MSM_FB_DSUB_PMEM_ADDER, 4096)
-#else /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
-#define MSM_FB_SIZE 0x6F0000
-#endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
+/* Note: must be multiple of 4096 */
+#define MSM_FB_SIZE 0x9E6000
 
 #define MSM_OVERLAY_BLT_SIZE	0x18000
 #define MSM_PMEM_ADSP_SIZE	0x1500000
 #define MSM_PMEM_AUDIO_SIZE	0x239000
-#define MSM_PMEM_SF_SIZE	0x23A0000 /* ~36 Mbytes */
+#define MSM_PMEM_SF_SIZE	0x2A90000 /* ~42.6 Mbytes */
 
 #define MSM_OVERLAY_BLT_BASE	(0x45C00000)
 #define MSM_PMEM_ADSP_BASE	(USER_SMI_BASE + USER_SMI_SIZE)
 #define MSM_PMEM_AUDIO_BASE	(0x46400000)
 #define MSM_PMEM_SF_BASE	(0x40400000)
 
-#define MSM_FB_BASE		(MSM_PMEM_SF_BASE + MSM_PMEM_SF_SIZE)
+#define MSM_FB_BASE		(0x80000000 - MSM_FB_SIZE)
 
 #define MSM_SMI_BASE		0x38000000
 #define MSM_SMI_SIZE		(0x4000000 - MSM_PMEM_ADSP_SIZE)
@@ -101,7 +98,7 @@
 #define MSM_PMEM_SMIPOOL_SIZE	USER_SMI_SIZE
 
 #define PHY_BASE_ADDR1		0x48000000
-#define SIZE_ADDR1		0x37F00000
+#define SIZE_ADDR1		0x37600000
 
 /* GPIO definition */
 

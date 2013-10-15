@@ -183,7 +183,7 @@ static void tsens8x60_get_temp(int sensor_num, unsigned long *temp)
 			(sensor_num << TSENS_STATUS_ADDR_OFFSET));
 	*temp = tsens_tz_code_to_degC(code, sensor_num);
 	tsens_log_count++;
-	if ((tsens_log_count % 20) == 0) {
+	if (tsens_log_count > 240) {
 		pr_warn("TSENS: Current CPU Temperature is: %lu\n", *temp);
 		tsens_log_count = 0;
 	}

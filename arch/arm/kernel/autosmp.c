@@ -58,8 +58,8 @@ static struct asmp_param_struct {
 	.scroff_single_core = true,
 	.max_cpus = CONFIG_NR_CPUS,
 	.min_cpus = 1,
-	.cpufreq_up = 1000, //MHz
-	.cpufreq_down = 600, //MHz
+	.cpufreq_up = 900, //MHz
+	.cpufreq_down = 500, //MHz
 	.cycle_up = 1,
 	.cycle_down = 5,
 };
@@ -77,7 +77,7 @@ static void __cpuinit asmp_work_fn(struct work_struct *work) {
 	get_online_cpus(); 
 	nr_cpu_online = num_online_cpus();
 	for_each_online_cpu(cpu) {
-		rate = cpufreq_get(cpu);
+		rate = cpufreq_quick_get(cpu);
 		if (cpu) { // count only nonboot cores for slow_rate
 			if (rate <= slow_rate) {
 				slow_cpu = cpu;
@@ -91,10 +91,9 @@ static void __cpuinit asmp_work_fn(struct work_struct *work) {
 	fast_rate /= 1000;  // kHz -> MHz
 	slow_rate /= 1000;
 
-	/* hotplug one core if one freq is over the limit and no idle cores */
+	/* hotplug one core if cpu0 freq is over the limit */
 	if ((nr_cpu_online < asmp_param.max_cpus) && 
-	    (fast_rate > asmp_param.cpufreq_up) && 
-	    (slow_rate > asmp_param.cpufreq_up)) {
+	    (fast_rate > asmp_param.cpufreq_up)) {
 		if (cycle >= asmp_param.cycle_up) {
 			cpu = cpumask_next_zero(0, cpu_online_mask);
 			cpu_up(cpu);
@@ -114,7 +113,7 @@ static void __cpuinit asmp_work_fn(struct work_struct *work) {
 			per_cpu(asmp_cpudata, cpu).times_hotplugged += 1;
 #endif
 #if DEBUG
-			pr_info(ASMP_TAG"CPU[%d] off\n", cpu);
+			pr_info(ASMP_TAG"CPU[%d] off\n", slow_cpu);
 #endif
 		}
 	}
